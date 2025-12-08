@@ -1,0 +1,43 @@
+package com.luis.pealthbackend.entity;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Entity
+public class Owner {
+
+    @Id
+    private Long id; // No es autogenerado, ya que obtenemos el id a partir de la tabla 'pealth_user'
+
+    private String phone;
+    private String address;
+
+    @OneToOne
+    @MapsId // Define que establezca su ID de User al mismo valor que el ID del dueño
+    @JoinColumn(name = "user_id") // Crea la FK que conecta a User
+    private User user;
+
+    // cascade + orphanRemoval -- Si borramos al Owner también se borrarán las mascotas
+    @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default // No es necesario con builder definir pets y de esta manera no sobrescribe la lista
+    private List<Pet> pets = new ArrayList<>();
+
+    // Helper methods -- Necesarios en relaciones bidireccionales.
+    public void addPet(Pet pet) {
+        this.pets.add(pet);
+        pet.setOwner(this); // Establecemos el dueño (Esta instancia) en la mascota
+    }
+
+    public void removePet(Pet pet) {
+        this.pets.remove(pet); // Quitamos al animal de la lista
+        pet.setOwner(null); // Rompemos la relación
+    }
+}
