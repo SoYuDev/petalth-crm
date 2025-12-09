@@ -21,6 +21,7 @@ public class Appointment {
     private LocalDateTime dateTime;
 
     private String reason; // Motivo de la consulta (Vacuna, dolor, revision etc.)
+    private String diagnosis; // Notas del veterinario después de la consulta.
 
     @Enumerated(EnumType.STRING)
     private AppointmentStatus status;

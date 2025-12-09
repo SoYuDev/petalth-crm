@@ -27,4 +27,15 @@ public class Veterinarian {
     @OneToMany(mappedBy = "veterinarian", cascade = CascadeType.ALL)
     @Builder.Default
     private List<Appointment> appointments = new ArrayList<>();
+
+    // Helper methods
+    public void addAppointment(Appointment appointment) {
+        appointments.add(appointment);
+        appointment.setVeterinarian(this);
+    }
+
+    public void removeAppointment(Appointment appointment) {
+        appointments.remove(appointment);
+        appointment.setVeterinarian(null);
+    }
 }
