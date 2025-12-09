@@ -22,6 +22,8 @@ public class Veterinarian {
     @JoinColumn(name = "user_id")
     private User user;
 
+    private String speciality;
+
     @OneToMany(mappedBy = "veterinarian", cascade = CascadeType.ALL)
     @Builder.Default
     private List<Appointment> appointments = new ArrayList<>();
