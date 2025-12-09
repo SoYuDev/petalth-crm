@@ -1,0 +1,41 @@
+package com.luis.pealthbackend.entity;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.time.LocalDateTime;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Entity
+public class Appointment {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    // Usamos LocalDateTime para guardar Fecha y Hora juntas
+    private LocalDateTime dateTime;
+
+    private String reason; // Motivo de la consulta (Vacuna, dolor, revision etc.)
+
+    @Enumerated(EnumType.STRING)
+    private AppointmentStatus status;
+
+    // Relación N:1 -> Muchas citas pueden ser para una misma mascota
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "pet_id")
+    private Pet pet;
+
+    // Relación N:1 -> Muchas citas las atiende un mismo veterinario
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "veterinarian_id")
+    private Veterinarian veterinarian;
+
+    // Relación 1:1 -> Una cita genera una factura (Opcional, puede ser null al principio)
+    @OneToOne(mappedBy = "appointment", cascade = CascadeType.ALL)
+    private Invoice invoice;
+}
