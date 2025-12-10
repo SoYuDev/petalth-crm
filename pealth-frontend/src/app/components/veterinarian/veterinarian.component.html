@@ -1,0 +1,15 @@
+<h2>Listado de Veterinarios</h2>
+
+@if (veterinarians.length > 0) {
+
+<ul>
+    @for (vet of veterinarians; track vet.id) {
+    <li>
+        <strong>{{ vet.fullName }}</strong> ({{ vet.speciality }})
+    </li>
+    }
+</ul>
+
+} @else {
+<p>Cargando datos o lista vacía...</p>
+}
