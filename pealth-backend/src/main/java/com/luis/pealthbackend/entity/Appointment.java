@@ -37,6 +37,15 @@ public class Appointment {
     private Veterinarian veterinarian;
 
     // Relación 1:1 -> Una cita genera una factura (Opcional, puede ser null al principio)
+    // Appointment es la entidad fuerte de la relación con Invoice
     @OneToOne(mappedBy = "appointment", cascade = CascadeType.ALL)
     private Invoice invoice;
+
+    // Helper Methods OneToOne
+    public void addInvoice(Invoice invoice) {
+        this.invoice = invoice;
+        if (invoice != null) {
+            invoice.setAppointment(this);
+        }
+    }
 }

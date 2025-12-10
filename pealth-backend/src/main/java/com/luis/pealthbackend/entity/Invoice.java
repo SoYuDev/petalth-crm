@@ -26,10 +26,11 @@ public class Invoice {
     @Enumerated(EnumType.STRING)
     private InvoiceStatus status;
 
-    // La factura es dueña de la relación con la cita
+    // Appointment es la entidad fuerte, ya que sin ella no existe Invoice
     @OneToOne
     @JoinColumn(name = "appointment_id",
             foreignKey = @ForeignKey(name = "fk_invoice_appointment"),
             unique = true) // unique=true fuerza 1 a 1 real en BD
     private Appointment appointment;
+
 }
