@@ -21,7 +21,7 @@ public class VeterinarianController {
         this.veterinarianRepository = veterinarianRepository;
     }
 
-    @GetMapping("/")
+    @GetMapping
     public List<VeterinarianDTO> getAllVeterinarians() {
 
         return veterinarianRepository.findAll()
