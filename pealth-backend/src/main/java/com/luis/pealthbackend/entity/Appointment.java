@@ -21,7 +21,7 @@ public class Appointment {
     private LocalDateTime dateTime;
 
     @ManyToOne
-    @JoinColumn(name = "service_id")
+    @JoinColumn(name = "medicaltreatment_id", foreignKey = @ForeignKey(name = "fk_appointment_medicaltreatment"))
     private MedicalTreatment service;
     private String diagnosis; // Notas del veterinario después de la consulta.
 
