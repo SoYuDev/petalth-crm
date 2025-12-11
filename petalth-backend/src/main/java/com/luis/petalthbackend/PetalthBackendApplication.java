@@ -4,10 +4,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class PealthBackendApplication {
+public class PetalthBackendApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(PealthBackendApplication.class, args);
+        SpringApplication.run(PetalthBackendApplication.class, args);
     }
 
 }
