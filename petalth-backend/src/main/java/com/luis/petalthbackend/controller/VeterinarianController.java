@@ -1,7 +1,7 @@
-package com.luis.pealthbackend.controller;
+package com.luis.petalthbackend.controller;
 
-import com.luis.pealthbackend.dto.VeterinarianDTO;
-import com.luis.pealthbackend.repository.VeterinarianRepository;
+import com.luis.petalthbackend.dto.VeterinarianDTO;
+import com.luis.petalthbackend.repository.VeterinarianRepository;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

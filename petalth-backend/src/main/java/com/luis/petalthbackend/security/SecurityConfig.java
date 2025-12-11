@@ -1,4 +1,4 @@
-package com.luis.pealthbackend.security;
+package com.luis.petalthbackend.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

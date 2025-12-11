@@ -1,4 +1,4 @@
-package com.luis.pealthbackend.entity;
+package com.luis.petalthbackend.entity;
 
 public enum AppointmentStatus {
     PENDING,
