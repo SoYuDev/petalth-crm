@@ -1,12 +1,12 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Veterinarian } from './veterinarian';
+import { Appointment } from './appointment';
 
 @Injectable({ providedIn: 'root' })
-export class VeterinarianService {
+export class AppointmentService {
   private http = inject(HttpClient);
   
   getAll() {
-    return this.http.get<Veterinarian[]>('http://localhost:8080/api/veterinarians');
+    return this.http.get<Appointment[]>('http://localhost:8080/api/appointments');
   }
 }

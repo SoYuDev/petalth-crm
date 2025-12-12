@@ -1,0 +1,19 @@
+<h2>Listado de Citas...</h2>
+
+@if (appointments.length > 0) {
+
+<ul>
+    @for (app of appointments; track app.id) {
+    <li>
+        <strong>{{ app.dateTime }}</strong>
+    </li>
+    <li>
+        {{app.petName}} -- {{app.serviceName}}
+    </li>
+    <br>
+    }
+</ul>
+
+} @else {
+<p>Cargando datos o lista vacía...</p>
+}
