@@ -1,0 +1,49 @@
+package com.luis.petalthbackend.entity;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Entity
+public class Pet {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String name;
+
+    private String photoUrl;
+    private LocalDate birthDate;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "owner_id", foreignKey = @ForeignKey(name = "fk_pet_owner"))
+    private Owner owner;
+
+    @OneToMany(mappedBy = "pet", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @Builder.Default
+    private List<Appointment> appointments = new ArrayList<>();
+
+    // Borrado lógico. Si el dueño "borra" a la mascota lo ponemos en falso, pero las facturas antiguas
+    // Seguirán apuntando a la mascota
+    @Builder.Default
+    private boolean active = true;
+
+    // Helper methods -- Relación bidireccional con Appointment que es la clase "hija"
+    public void addAppointment(Appointment appointment) {
+        this.appointments.add(appointment);
+        appointment.setPet(this);
+    }
+
+    public void removeAppointment(Appointment appointment) {
+        this.appointments.remove(appointment);
+        appointment.setPet(null);
+    }
+}
