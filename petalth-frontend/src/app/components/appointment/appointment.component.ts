@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { AppointmentService } from './appointment.service';
 import { Appointment } from './appointment';
 
@@ -13,14 +13,15 @@ export class AppointmentComponent {
   // 1. Inyectamos el servicio
   private service = inject(AppointmentService);
 
-  // 2. Creamos la variable normal (array vacío al principio)
-  appointments: Appointment[] = [];
+  
+  appointments = signal<Appointment[]>([]);
 
   // 3. Al iniciar el componente, nos suscribimos al observable
   ngOnInit(): void {
     this.service.getAll().subscribe({
+      // Cuando abrimos el grifo del observer (entran los datos...)
       next: (data) => {
-        this.appointments = data; // Guardamos los datos cuando llegan
+        this.appointments.set(data) // Guardamos los datos cuando llegan
         console.log('Datos recibidos:', data);
       },
       error: (e) => console.error(e),

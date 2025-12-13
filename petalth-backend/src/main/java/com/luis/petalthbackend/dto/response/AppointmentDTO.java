@@ -6,8 +6,8 @@ import java. time.LocalDateTime;
 public record AppointmentDTO(
     Long id,
     LocalDateTime dateTime,
-    String serviceName,        // Solo el nombre del tratamiento
+    String serviceName,
     AppointmentStatus status,
-    String petName,            // Solo el nombre de la mascota
-    String veterinarianName    // Solo el nombre del vet
+    String petName,
+    String veterinarianName
 ) {}

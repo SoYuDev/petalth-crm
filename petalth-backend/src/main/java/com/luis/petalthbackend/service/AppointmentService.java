@@ -16,7 +16,12 @@ public class AppointmentService {
         this.appointmentRepository = appointmentRepository;
     }
 
-    @Transactional(readOnly = true)  // Mantiene la sesión abierta
+    // Realmente es mejor práctica usar JOIN FETCH en una JPQL dentro del repositorio.
+
+    // Transaction define que es un bloque de operaciones que se ejecutan como una unidad
+    // Esto soluciona la Exception LazyInitializationException, ya que por defecto
+    // Hibernate cierra la conexión después de realizar appointmentRepository.findAll()
+    @Transactional(readOnly = true) // Para consultas SELECT
     public List<AppointmentDTO> getAllAppointments() {
         return appointmentRepository.findAll()
                 .stream()
