@@ -32,10 +32,6 @@ public class Veterinarian {
     @Builder.Default
     private List<Appointment> appointments = new ArrayList<>();
 
-    @Builder.Default
-    @Column(nullable = false)
-    private boolean active = true;
-
     // Helper methods
     public void addAppointment(Appointment appointment) {
         appointments.add(appointment);

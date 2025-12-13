@@ -14,7 +14,6 @@ ALTER SEQUENCE medical_treatment_id_seq RESTART WITH 6;
 
 -- =================================================================================
 -- 2. USUARIOS (Tabla:  petalth_user)
--- ⚠️ AÑADIDO: columna 'active'
 -- =================================================================================
 
 -- VETERINARIOS (IDs 1, 2, 3)
@@ -23,12 +22,15 @@ INSERT INTO petalth_user (id, email, password, first_name, last_name, rol, activ
 (2, 'carlos@vet.com', '$2a$10$EqlAs...', 'Carlos', 'Ruiz', 'VET', true),
 (3, 'laura@vet.com', '$2a$10$EqlAs...', 'Laura', 'Gómez', 'VET', true);
 
--- DUEÑOS (IDs 4, 5, 6, 7, 8)
+-- DUEÑOS (IDs 4, 5, 6, 7)
 INSERT INTO petalth_user (id, email, password, first_name, last_name, rol, active) VALUES
 (4, 'luis@owner.com', '$2a$10$EqlAs...', 'Luis', 'Rodríguez', 'OWNER', true),
 (5, 'maria@owner.com', '$2a$10$EqlAs...', 'María', 'López', 'OWNER', true),
 (6, 'pepe@owner.com', '$2a$10$EqlAs...', 'Pepe', 'García', 'OWNER', true),
-(7, 'sofia@owner.com', '$2a$10$EqlAs... ', 'Sofía', 'Martin', 'OWNER', true),
+(7, 'sofia@owner.com', '$2a$10$EqlAs... ', 'Sofía', 'Martin', 'OWNER', true);
+
+-- ADMIN (ID 8)
+INSERT INTO petalth_user (id, email, password, first_name, last_name, rol, active) VALUES
 (8, 'admin@petalth.com', '$2a$10$EqlAs...', 'Super', 'Admin', 'ADMIN', true);
 
 ALTER SEQUENCE petalth_user_id_seq RESTART WITH 9;
@@ -36,12 +38,13 @@ ALTER SEQUENCE petalth_user_id_seq RESTART WITH 9;
 
 -- =================================================================================
 -- 3. PERFILES ESPECÍFICOS (Tablas: veterinarian, owner)
+-- ⚠️ CORREGIDO: Veterinarian ya NO tiene columna 'active'
 -- =================================================================================
 
-INSERT INTO veterinarian (user_id, speciality, active) VALUES
-(1, 'Medicina Interna', true),
-(2, 'Cirugía y Traumatología', true),
-(3, 'Odontología', true);
+INSERT INTO veterinarian (user_id, speciality) VALUES
+(1, 'Medicina Interna'),
+(2, 'Cirugía y Traumatología'),
+(3, 'Odontología');
 
 INSERT INTO owner (user_id, phone, address) VALUES
 (4, '600111222', 'Calle Gran Vía 1, Madrid'),
@@ -51,13 +54,13 @@ INSERT INTO owner (user_id, phone, address) VALUES
 
 
 -- =================================================================================
--- 4. MASCOTAS (Tabla: pet)
+-- 4. MASCOTAS (Tabla:  pet)
 -- =================================================================================
 
 INSERT INTO pet (id, name, photo_url, birth_date, active, owner_id) VALUES
-(1, 'Toby', 'url_toby.jpg', '2018-05-20', true, 4),
-(2, 'Laika', 'url_laika.jpg', '2020-01-10', true, 4),
-(3, 'Michi', 'url_michi.jpg', '2021-08-15', true, 5),
+(1, 'Toby', 'url_toby. jpg', '2018-05-20', true, 4),
+(2, 'Laika', 'url_laika. jpg', '2020-01-10', true, 4),
+(3, 'Michi', 'url_michi. jpg', '2021-08-15', true, 5),
 (4, 'Rex', 'url_rex.jpg', '2022-11-01', true, 6),
 (5, 'Luna', 'url_luna.jpg', '2019-03-30', true, 7),
 (6, 'Firulais', 'url_firu.jpg', '2010-01-01', false, 7);
@@ -72,14 +75,14 @@ ALTER SEQUENCE pet_id_seq RESTART WITH 7;
 -- HISTORIAL PASADO (2023)
 INSERT INTO appointment (id, date_time, diagnosis, status, pet_id, veterinarian_id, medicaltreatment_id) VALUES
 (1, '2023-10-01 10:00:00', 'Paciente sano, vacuna aplicada sin reacción. ', 'COMPLETED', 1, 1, 2),
-(2, '2023-11-05 11:00:00', 'Gastroenteritis leve.  Dieta blanda. ', 'COMPLETED', 3, 1, 1),
+(2, '2023-11-05 11:00:00', 'Gastroenteritis leve.  Dieta blanda.', 'COMPLETED', 3, 1, 1),
 (3, '2023-12-01 09:00:00', 'Cancelada por el propietario.', 'CANCELLED', 5, 2, 3);
 
 -- MES PASADO / ACTUAL
 INSERT INTO appointment (id, date_time, diagnosis, status, pet_id, veterinarian_id, medicaltreatment_id) VALUES
-(4, '2024-02-15 15:30:00', 'Sutura de herida en pata trasera. Todo bien.', 'COMPLETED', 2, 2, 3),
-(5, '2024-02-20 10:00:00', 'Limpieza profunda realizada.  Encías inflamadas. ', 'COMPLETED', 4, 3, 4),
-(6, '2022-06-10 12:00:00', 'Chequeo geriátrico. ', 'COMPLETED', 6, 1, 1);
+(4, '2024-02-15 15:30:00', 'Sutura de herida en pata trasera. Todo bien. ', 'COMPLETED', 2, 2, 3),
+(5, '2024-02-20 10:00:00', 'Limpieza profunda realizada. Encías inflamadas.', 'COMPLETED', 4, 3, 4),
+(6, '2022-06-10 12:00:00', 'Chequeo geriátrico.', 'COMPLETED', 6, 1, 1);
 
 -- FUTURO (PENDING)
 INSERT INTO appointment (id, date_time, diagnosis, status, pet_id, veterinarian_id, medicaltreatment_id) VALUES
@@ -95,7 +98,7 @@ ALTER SEQUENCE appointment_id_seq RESTART WITH 14;
 
 
 -- =================================================================================
--- 6. FACTURAS (Tabla:  invoice)
+-- 6. FACTURAS (Tabla: invoice)
 -- =================================================================================
 
 INSERT INTO invoice (id, issue_date, amount, status, appointment_id) VALUES

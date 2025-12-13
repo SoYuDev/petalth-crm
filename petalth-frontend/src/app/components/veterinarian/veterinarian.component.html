@@ -1,9 +1,9 @@
 <h2>Listado de Veterinarios</h2>
 
-@if (veterinarians.length > 0) {
+@if (veterinarians().length > 0) {
 
 <ul>
-    @for (vet of veterinarians; track vet.id) {
+    @for (vet of veterinarians(); track vet.id) {
     <li>
         <strong>{{ vet.fullName }}</strong> ({{ vet.speciality }})
     </li>
