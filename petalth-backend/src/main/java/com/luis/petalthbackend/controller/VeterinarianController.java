@@ -2,6 +2,8 @@ package com.luis.petalthbackend.controller;
 
 import com.luis.petalthbackend.dto.response.VeterinarianDTO;
 import com.luis.petalthbackend.repository.VeterinarianRepository;
+import com.luis.petalthbackend.service.VeterinarianService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,24 +16,17 @@ import java.util.List;
 @CrossOrigin(origins = "http://localhost:4200") // Importante para que Angular se comunique con Spring
 public class VeterinarianController {
 
-    private VeterinarianRepository veterinarianRepository;
+    private VeterinarianService veterinarianService;
 
-    // Constructor DI
-    public VeterinarianController(VeterinarianRepository veterinarianRepository) {
-        this.veterinarianRepository = veterinarianRepository;
+    public VeterinarianController(VeterinarianService veterinarianService) {
+        this.veterinarianService = veterinarianService;
     }
 
     @GetMapping
-    public List<VeterinarianDTO> getAllVeterinarians() {
+    public ResponseEntity<List<VeterinarianDTO>> getAllVeterinarians() {
+        List<VeterinarianDTO> vetList = veterinarianService.getAllVets();
+        return ResponseEntity.ok(vetList);
 
-        return veterinarianRepository.findAll()
-                .stream()
-                // A partir del veterinario, creamos un DTO con la información que queramos pasar a Angular.
-                .map(vet -> new VeterinarianDTO(vet.getId(),
-                        vet.getUser().getFirstName() + " " + vet.getUser().getLastName(),
-                        vet.getSpeciality()
-                ))
-                .toList();
     }
 
 
