@@ -16,7 +16,7 @@ import java.util.List;
 @CrossOrigin(origins = "http://localhost:4200") // Importante para que Angular se comunique con Spring
 public class VeterinarianController {
 
-    private VeterinarianService veterinarianService;
+    private final VeterinarianService veterinarianService;
 
     public VeterinarianController(VeterinarianService veterinarianService) {
         this.veterinarianService = veterinarianService;
