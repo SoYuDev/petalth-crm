@@ -25,7 +25,7 @@ public class PetService {
                         pet.getName(),
                         pet.getPhotoUrl(),
                         pet.getBirthDate(),
-                        pet.getOwner().getUser().getFirstName() + pet.getOwner().getUser().getLastName()
+                        pet.getOwner().getUser().getFirstName() + " " + pet.getOwner().getUser().getLastName()
                 )).toList();
     }
 
