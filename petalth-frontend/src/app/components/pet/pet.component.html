@@ -1,0 +1,12 @@
+<div class="pets-container">
+    <h2>Mis Mascotas</h2>
+
+    @for (pet of pets(); track pet.id) {
+    <div class="pet-card">
+        <h3>{{ pet.name }}</h3>
+        <p>Dueño: {{ pet.owner }}</p>
+    </div>
+    } @empty {
+    <p>No tienes mascotas registradas</p>
+    }
+</div>

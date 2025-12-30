@@ -1,0 +1,65 @@
+<nav class="navbar navbar-expand-lg bg-body-tertiary mb-3">
+  <div class="container">
+    <a class="navbar-brand" href="#">
+      <img src="../../../assets/media/petalth-logo.png" alt="Petalth Logo" class="navbar-logo">
+    </a>
+
+    <!-- Botón Hamburguesa para cuando la pantalla es menor a lg -->
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+      aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <!-- Menú, collapse define que estos elementos no se muestren en móviles -->
+    <div class="collapse navbar-collapse mt-2 fontfix" id="navbarNav">
+      <!-- Menú del centro -->
+      <ul class="navbar-nav mx-auto fs-5 gap-4">
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/pets" routerLinkActive="active">Mascotas</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/veterinarians" routerLinkActive="active">Veterinarios</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/appointments" routerLinkActive="active">Citas</a>
+        </li>
+      </ul>
+      <!-- Menú de la derecha -->
+      <ul class="navbar-nav">
+        <!-- Dropdown para pantallas grandes (lg y superior) -->
+        <li class="nav-item dropdown d-none d-lg-block">
+          <button class="btn btn-primary btn" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Acceso a la app
+          </button>
+          <div class="dropdown-menu dropdown-menu-end p-4" style="min-width: 700px;">
+            <div class="row g-3">
+              <!-- Columna 1: Ya tienes cuenta -->
+              <div class="col-6">
+                <div class="text-left">
+                  <h6 class="mb-3">¿Ya tienes cuenta?</h6>
+                  <p>¡Accede a tu espacio personal para gestionar la salud de tu mascota!</p>
+                  <button class="btn btn-primary w-100">Inicia Sesión</button>
+                </div>
+              </div>
+              <!-- Columna 2: Primera vez aquí -->
+              <div class="col-6">
+                <div class="text-left">
+                  <h6 class="mb-3">¿Primera vez aquí?</h6>
+                  <p>¡Registrate gratis y empieza a disfrutar de todos los servicios!</p>
+                  <button class="btn btn-outline-primary w-100">Regístrate</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </li>
+        <!-- Opciones simples para móviles (solo visible en pantallas menores a lg) -->
+        <li class="nav-item d-lg-none">
+          <a class="nav-link" href="#">Inicia Sesión</a>
+        </li>
+        <li class="nav-item d-lg-none">
+          <a class="nav-link" href="#">Regístrate</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
