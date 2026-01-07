@@ -68,7 +68,8 @@ Para autentificar el token se hace una recalculación cuya comprobación se hace
 
 ## 4. JwtAuthenticationFilter
 
-Intercepta todas las peticiones antes de que lleguen a los controllers
+Intercepta todas las peticiones antes de que lleguen a los controllers.<br>
+**Por cada petición HTTP PROTEGIDA que se haga la función doFilterInternal va a ser siempre llamada**
 
 # Flujo de Autenticación JWT
 
@@ -245,4 +246,92 @@ Frontend                          Backend
    │                                │
    │  { data:  [... ] }             │
    │ <───────────────────────────── │
+```
+
+## 5. SecurityConfig
+
+Por defecto Spring Security redirige a un formulario HTML y protege todas las rutas si no hay autenticación
+
+### Las funciones de la clase SecurityConfig
+
+- 1. Autorizar algunas rutas sin autenticación (/auth/login)
+- 2. Indicarle a Spring que use JwtAuthenticationFilter para verificar los tokens
+- 3. Configurar otros detalles como CORS, evitar formularios...
+
+### 5.1 SecurityFilterChain
+
+```java
+public class SecurityConfig {
+
+    private final JwtAuthenticationFilter jwtAuthFilter;
+
+    // Definir el SecurityFilterChain
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        return http
+                // Deshabilitamos CSRF para que no pida tokens en las peticiones POST/PUT
+                .csrf(csrf -> csrf.disable())
+                // Permitimos el acceso a TODAS las rutas sin autenticación
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/auth/**").permitAll() // 2. Permitir rutas públicas
+                        .anyRequest().authenticated() // 3. Proteger todas las demás rutas
+                )
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // 4. JWT -> Sin estado (stateless)
+                )
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class) // 5. Añadimos nuestro filtro
+                .build();
+    }
+
+    // Definir AuthenticationManager Bean
+    @Bean
+    public AuthenticationManager authenticationManagerBean(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
+    }
+
+    // Definir el PasswordEncoder
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+}
+```
+
+#### CSRF (Cross-Site Request Fogery)
+
+Es un ataque en el que se intentan usar cookies para engañar al backen. Como estamos usando JWT y no cookies podemos deshabilitarlo.
+
+#### Autorización de rutas
+
+Permitimos rutas públicas (/auth/\*\*) y protegemos el resto (anyRequest().authenticated)
+
+#### Configuración de la sesión
+
+JWT está pensado para apps sin estado ya que el backend no recuerda los usuarios después de cada petición.
+
+#### Añadir el filtro JWT
+
+Usamos nuestra clase JwtAuthenticationFilter que se encarga de validar el token de cada petición.
+
+### 5.2. AuthenticationManager
+
+Objeto que Spring usa para autenticar usuarios con UserDetailsService y necesitaremos cuando hagamos login en el AuthController
+
+```java
+@Bean
+public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+    return config.getAuthenticationManager();
+}
+```
+
+### 5.3. PasswordEncoder
+
+Bean necesario para encriptar las contraseñas antes de guardarlas en la base de datos. <br>
+BCrypt es un algoritmo fuerte y seguro para guardar contraseñas
+
+```java
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 ```
