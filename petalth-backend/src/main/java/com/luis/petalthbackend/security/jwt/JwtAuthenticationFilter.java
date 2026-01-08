@@ -31,8 +31,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String authHeader = request.getHeader("Authorization");
 
         // 2. Si no hay header o no empieza con "Bearer ", dejamos pasar
-        // (será rechazado más adelante si la ruta requiere autentificación
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+        // IMPORTANTE: Esta verificación DEBE ir ANTES de hacer substring
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }

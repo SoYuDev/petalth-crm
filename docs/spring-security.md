@@ -126,52 +126,54 @@ protected void doFilterInternal(@NonNull HttpServletRequest request,
 ### Método completo y explicación del cuerpo
 
 ```java
-@Override
-protected void doFilterInternal(@NonNull HttpServletRequest request,
-                                @NonNull HttpServletResponse response,
-                                @NonNull FilterChain filterChain) throws ServletException, IOException {
-    // 1. Obtener el header "Authorization"
-    final String authHeader = request.getHeader("Authorization");
+    @Override
+    protected void doFilterInternal(@NonNull HttpServletRequest request,
+                                    @NonNull HttpServletResponse response,
+                                    @NonNull FilterChain filterChain) throws ServletException, IOException {
+        // 1. Obtener el header "Authorization"
+        final String authHeader = request.getHeader("Authorization");
 
-    // 2. Si no hay header o no empieza con "Bearer ", dejamos pasar
-    // (será rechazado más adelante si la ruta requiere autentificación
-    if (authHeader != null && authHeader.startsWith("Bearer ")) {
-        filterChain.doFilter(request, response);
-        return;
-    }
-
-    // 3. Extraer el token, quitando "Bearer " del principio
-    final String token = authHeader.substring(7);
-
-    // 4. Extraer el email del token
-    final String userEmail = jwtService.extractEmail(token);
-
-    // 5. Si hay email y el usuario NO está autenticado
-    if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-        // 6. Cargar el usuario desde la BD
-        UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
-
-        // 7. Validar el token
-        if (jwtService.isTokenValid(token, userDetails)) {
-            // 8. Crear objeto de autenticación (Objeto de Java que actúa como Token para Spring Security)
-            // El token que es un String sirve para el frontend.
-            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                    userDetails,
-                    null,
-                    userDetails.getAuthorities() // Posibles roles como ROLE_ADMIN, ROLE_USER...
-            );
-
-            // 9. Añadir detalles de la petición (IP del usuario y Session ID, util para logs y auditorias)
-            authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-            // 10. Guardar en el contexto de seguridad
-            SecurityContextHolder.getContext().setAuthentication(authToken);
+        // 2. Si no hay header o no empieza con "Bearer ", dejamos pasar
+        // IMPORTANTE: Esta verificación DEBE ir ANTES de hacer substring
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            filterChain.doFilter(request, response);
+            return;
         }
-    }
 
-    // 11. Continuar con la cadena de filtros
-    filterChain. doFilter(request, response);
-}
+        // 3. Extraer el token, quitando "Bearer " del principio
+        final String token = authHeader.substring(7);
+
+        // 4. Extraer el email del token
+        final String userEmail = jwtService.extractEmail(token);
+
+        // 5. Si hay email y el usuario NO está autenticado
+        if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            // 6. Cargar el usuario desde la BD
+            UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
+
+            // 7. Validar el token
+            if (jwtService.isTokenValid(token, userDetails)) {
+                // 8. Crear objeto de autenticación (Objeto de Java que actúa como Token para Spring Security)
+                // El token que es un String sirve para el frontend.
+                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                        userDetails,
+                        null,
+                        userDetails.getAuthorities() // Posibles roles como ROLE_ADMIN, ROLE_USER...
+                );
+
+                // 9. Añadir detalles de la petición (IP del usuario y Session ID, util para logs y auditorias)
+                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+                // 10. Guardar en el contexto de seguridad
+                SecurityContextHolder.getContext().setAuthentication(authToken);
+            }
+        }
+
+        // 11. Continuar con la cadena de filtros
+        filterChain.doFilter(request, response);
+
+
+    }
 ```
 
 **Es muy importante aclarar que necesitamos dos tokens, el JWT que usará el front e irá viajando entre Front y Back y UsernamePasswordAuthenticationToken que será un objeto de java que actuará como token dentro del contexto de Spring security**
@@ -362,7 +364,7 @@ public record AuthResponse(
 
 Clase que procesa el login (Validación de credenciales y generación del token JWT)
 
-````java
+```java
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -398,5 +400,393 @@ public class AuthService {
                 "Login exitoso"
         );
     }
-}```
-````
+}
+```
+
+## 7. AuthController
+
+Recibe la petición y mediante el service devuelve una respuesta
+
+```java
+@RestController
+@RequestMapping("/auth")
+@RequiredArgsConstructor
+public class AuthController {
+
+    private final AuthService authService;
+
+    @PostMapping("/login")
+    public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest loginRequest) {
+        return ResponseEntity.ok(authService.login(loginRequest));
+    }
+}
+```
+
+### @RequestBody
+
+Convierte el JSON a un objeto Java loginRequest (record) sin el campos como loginRequest.email() o loginRequest.password() serían nulos.
+
+## 8. Resumen
+
+Hemos construido un sistema de autenticación stateless basado en JWT. El servidor no guarda sesiones, toda la información del usuario viaja en el token.
+
+### Componentes del sistema
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         COMPONENTES DE SEGURIDAD                            │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐       │
+│   │ SecurityConfig  │     │   JwtService    │     │ JwtAuthFilter   │       │
+│   │                 │     │                 │     │                 │       │
+│   │ • Rutas         │     │ • Crear token   │     │ • Interceptar   │       │
+│   │   públicas      │     │ • Validar token │     │   peticiones    │       │
+│   │ • Rutas         │     │ • Extraer datos │     │ • Validar token │       │
+│   │   protegidas    │     │   del token     │     │ • Autorizar     │       │
+│   └─────────────────┘     └─────────────────┘     └─────────────────┘       │
+│                                                                             │
+│   ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐       │
+│   │ CustomUserDet.  │     │  AuthService    │     │ AuthController  │       │
+│   │    Service      │     │                 │     │                 │       │
+│   │                 │     │ • Login         │     │ • POST /login   │       │
+│   │ • Cargar user   │     │ • Validar       │     │ • POST /register│       │
+│   │   desde BD      │     │   credenciales  │     │   (futuro)      │       │
+│   │ • Convertir a   │     │ • Generar       │     │                 │       │
+│   │   UserDetails   │     │   respuesta     │     │                 │       │
+│   └─────────────────┘     └─────────────────┘     └─────────────────┘       │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Flujo 1 LOGIN (Obtener el token)
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              FLUJO DE LOGIN                                 │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+    CLIENTE                                                    SERVIDOR
+    ───────                                                    ────────
+
+        │   POST /auth/login                                       │
+        │   {                                                      │
+        │     "email": "admin@petalth.com",                        │
+        │     "password":  "123456"                                │
+        │   }                                                      │
+        │ ──────────────────────────────────────────────────────── │
+        │                                                          │
+        │                          ┌───────────────────────────────┤
+        │                          │  1. SecurityConfig            │
+        │                          │     ¿/auth/** es pública?     │
+        │                          │     → SÍ, dejar pasar         │
+        │                          └───────────────┬───────────────┤
+        │                                          │               │
+        │                          ┌───────────────▼───────────────┤
+        │                          │  2. AuthController            │
+        │                          │     Recibe LoginRequest       │
+        │                          │     Llama a AuthService       │
+        │                          └───────────────┬───────────────┤
+        │                                          │               │
+        │                          ┌───────────────▼───────────────┤
+        │                          │  3. AuthService               │
+        │                          │     authManager.authenticate()│
+        │                          └───────────────┬───────────────┤
+        │                                          │               │
+        │                          ┌───────────────▼───────────────┤
+        │                          │  4. CustomUserDetailsService  │
+        │                          │     Busca user en BD          │
+        │                          │     Convierte a UserDetails   │
+        │                          └───────────────┬───────────────┤
+        │                                          │               │
+        │                          ┌───────────────▼───────────────┤
+        │                          │  5. PasswordEncoder (BCrypt)  │
+        │                          │     ¿"123456" == hash en BD?  │
+        │                          │     → SÍ ✅                   │
+        │                          └───────────────┬───────────────┤
+        │                                          │               │
+        │                          ┌───────────────▼───────────────┤
+        │                          │  6. JwtService                │
+        │                          │     Genera token JWT          │
+        │                          │     Header + Payload + Firma  │
+        │                          └───────────────┬───────────────┤
+        │                                          │               │
+        │   200 OK                                 │               │
+        │   {                                      │               │
+        │     "token": "eyJhbGciOiJIUzM4NC.. .",   │               │
+        │     "email": "admin@petalth. com",       │               │
+        │     "rol": "ADMIN",                      │               │
+        │     "mensaje": "Login exitoso"           │               │
+        │   }                                      │               │
+        │ ◄─────────────────────────────────────────               │
+        │                                                          │
+
+    El cliente GUARDA el token (localStorage, cookies, memoria)
+```
+
+### Flujo 2 Petición Protegida (Usar el token)
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         FLUJO DE PETICIÓN PROTEGIDA                         │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+    CLIENTE                                                    SERVIDOR
+    ───────                                                    ────────
+
+        │   GET /api/mascotas                                      │
+        │   Authorization: Bearer eyJhbGciOiJIUzM4NCJ9...          │
+        │ ──────────────────────────────────────────────────────── │
+        │                                                          │
+        │                          ┌───────────────────────────────┤
+        │                          │  1. JwtAuthenticationFilter   │
+        │                          │                               │
+        │                          │  ¿Tiene header Authorization? │
+        │                          │  → SÍ                         │
+        │                          │                               │
+        │                          │  ¿Empieza con "Bearer "?      │
+        │                          │  → SÍ                         │
+        │                          │                               │
+        │                          │  Extraer token (substring 7)  │
+        │                          │  → "eyJhbGciOiJIUzM4NCJ9..."  │
+        │                          └───────────────┬───────────────┤
+        │                                          │               │
+        │                          ┌───────────────▼───────────────┤
+        │                          │  2. JwtService                │
+        │                          │                               │
+        │                          │  Extraer email del token      │
+        │                          │  → "admin@petalth.com"        │
+        │                          │                               │
+        │                          │  ¿Token válido?               │
+        │                          │  → Verificar firma ✅         │
+        │                          │  → No ha expirado ✅          │
+        │                          └───────────────┬───────────────┤
+        │                                          │               │
+        │                          ┌───────────────▼───────────────┤
+        │                          │  3. CustomUserDetailsService  │
+        │                          │                               │
+        │                          │  Cargar usuario de BD         │
+        │                          │  → UserDetails con roles      │
+        │                          └───────────────┬───────────────┤
+        │                                          │               │
+        │                          ┌───────────────▼───────────────┤
+        │                          │  4. SecurityContextHolder     │
+        │                          │                               │
+        │                          │  Guardar autenticación        │
+        │                          │  → Usuario:  admin@petalth.com│
+        │                          │  → Rol: ROLE_ADMIN            │
+        │                          │  → Autenticado: SÍ            │
+        │                          └───────────────┬───────────────┤
+        │                                          │               │
+        │                          ┌───────────────▼───────────────┤
+        │                          │  5. MascotaController         │
+        │                          │                               │
+        │                          │  Procesar petición            │
+        │                          │  Devolver datos               │
+        │                          └───────────────┬───────────────┤
+        │                                          │
+        │   200 OK                                 │
+        │   [                                      │
+        │     { "id": 1, "nombre": "Toby" },       │
+        │     { "id": 2, "nombre": "Luna" }        │
+        │   ]                                      │
+        │ ◄─────────────────────────────────────────
+```
+
+### Flujo 3 Petición sin Token (401/403)
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         FLUJO DE PETICIÓN RECHAZADA                         │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+    CLIENTE                                                    SERVIDOR
+    ───────                                                    ────────
+
+        │   GET /api/mascotas                                      │
+        │   (sin header Authorization)                             │
+        │ ──────────────────────────────────────────────────────── │
+        │                                                          │
+        │                          ┌───────────────────────────────┤
+        │                          │  1. JwtAuthenticationFilter   │
+        │                          │                               │
+        │                          │  ¿Tiene header Authorization? │
+        │                          │  → NO                         │
+        │                          │                               │
+        │                          │  filterChain. doFilter()      │
+        │                          │  (continúa sin autenticar)    │
+        │                          └───────────────┬───────────────┤
+        │                                          │               │
+        │                          ┌───────────────▼───────────────┤
+        │                          │  2. SecurityConfig            │
+        │                          │                               │
+        │                          │  ¿/api/mascotas es pública?   │
+        │                          │  → NO                         │
+        │                          │                               │
+        │                          │  ¿Usuario autenticado?        │
+        │                          │  → NO                         │
+        │                          │                               │
+        │                          │  DENEGAR ACCESO               │
+        │                          └───────────────┬───────────────┤
+        │                                          │
+        │   403 FORBIDDEN                          │
+        │   {                                      │
+        │     "error": "Access Denied"             │
+        │   }                                      │
+        │ ◄─────────────────────────────────────────
+```
+
+### Security Context Holder: La memoria de Spring Security
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         SECURITY CONTEXT HOLDER                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+    Después de que JwtAuthenticationFilter valida el token:
+
+    ┌─────────────────────────────────────────────────────────────────────┐
+    │                    SecurityContextHolder                            │
+    │                    (memoria temporal de Spring)                     │
+    │                                                                     │
+    │   ┌─────────────────────────────────────────────────────────────┐   │
+    │   │  Authentication                                             │   │
+    │   │  ─────────────────────────────────────────────────────────  │   │
+    │   │  Principal:      admin@petalth.com                          │   │
+    │   │  Credentials:     null (no guardamos password)              │   │
+    │   │  Authorities:   [ROLE_ADMIN]                                │   │
+    │   │  Authenticated: true                                        │   │
+    │   │  Details:       IP: 192.168.1.1, Session: ABC123            │   │
+    │   └────────────────────────────────────────────────────────────┘│   │
+    │                                                                     │
+    │   DURACIÓN:   Solo durante esta petición HTTP                       │
+    │   ALCANCE:   Accesible desde cualquier parte del código             │
+    │                                                                     │
+    └─────────────────────────────────────────────────────────────────────┘
+                                    │
+           ┌────────────────────────┼────────────────────────┐
+           │                        │                        │
+           ▼                        ▼                        ▼
+    ┌─────────────┐          ┌─────────────┐          ┌─────────────┐
+    │ Controller  │          │  Service    │          │  @PreAuth   │
+    │             │          │             │          │             │
+    │ ¿Quién es?  │          │ ¿Qué rol?   │          │ ¿Es admin?  │
+    └─────────────┘          └─────────────┘          └─────────────┘
+```
+
+### Rutas publicas vs protegidas
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    CONFIGURACIÓN EN SECURITY CONFIG                         │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+    . authorizeHttpRequests(auth -> auth
+        .requestMatchers("/auth/**").permitAll()      // PÚBLICAS
+        .anyRequest().authenticated()                  // PROTEGIDAS
+    )
+
+
+    ┌─────────────────────────────────────────────────────────────────────┐
+    │                         RUTAS PÚBLICAS                              │
+    │                       (no necesitan token)                          │
+    ├─────────────────────────────────────────────────────────────────────┤
+    │                                                                     │
+    │   POST /auth/login      → Iniciar sesión                            │
+    │   POST /auth/register   → Registrarse (futuro)                      │
+    │                                                                     │
+    │   El JwtAuthenticationFilter las deja pasar:                        │
+    │   if (authHeader == null) {                                         │
+    │       filterChain. doFilter(request, response);                     │
+    │       return;  // ← No valida, solo deja pasar                      │
+    │   }                                                                 │
+    │                                                                     │
+    └─────────────────────────────────────────────────────────────────────┘
+
+
+    ┌─────────────────────────────────────────────────────────────────────┐
+    │                        RUTAS PROTEGIDAS                             │
+    │                       (necesitan token JWT)                         │
+    ├─────────────────────────────────────────────────────────────────────┤
+    │                                                                     │
+    │   GET  /api/mascotas         → Listar mascotas                      │
+    │   POST /api/citas            → Crear cita                           │
+    │   GET  /api/usuarios         → Ver usuarios (solo admin)            │
+    │   PUT  /api/mascotas/{id}    → Editar mascota                       │
+    │                                                                     │
+    │   El JwtAuthenticationFilter:                                       │
+    │   1. Extrae el token del header                                     │
+    │   2. Valida firma y expiración                                      │
+    │   3. Carga usuario de BD                                            │
+    │   4. Guarda en SecurityContextHolder                                │
+    │   5. Deja pasar al Controller                                       │
+    │                                                                     │
+    └─────────────────────────────────────────────────────────────────────┘
+```
+
+### Los dos Tokens del sistema
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          DOS TOKENS DIFERENTES                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+    ┌─────────────────────────────────────────────────────────────────────┐
+    │                         TOKEN JWT (String)                          │
+    ├─────────────────────────────────────────────────────────────────────┤
+    │                                                                     │
+    │   Qué es:       "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJhZG1pbi..."        │
+    │                                                                     │
+    │   Para quién:  CLIENTE (Frontend, Postman, App móvil)               │
+    │                                                                     │
+    │   Viaja:        En el header Authorization de cada petición         │
+    │                                                                     │
+    │   Contiene:    Email, fecha de creación, fecha de expiración        │
+    │                                                                     │
+    │   Duración:    Configurable (ej: 24 horas, 7 días)                  │
+    │                                                                     │
+    └─────────────────────────────────────────────────────────────────────┘
+
+
+    ┌─────────────────────────────────────────────────────────────────────┐
+    │              UsernamePasswordAuthenticationToken (Objeto Java)      │
+    ├─────────────────────────────────────────────────────────────────────┤
+    │                                                                     │
+    │   Qué es:      Objeto Java que Spring Security entiende             │
+    │                                                                     │
+    │   Para quién:  SPRING SECURITY (interno del backend)                │
+    │                                                                     │
+    │   Vive en:     SecurityContextHolder (memoria de Spring)            │
+    │                                                                     │
+    │   Contiene:    UserDetails, authorities (roles), estado auth        │
+    │                                                                     │
+    │   Duración:     Solo durante una petición HTTP                      │
+    │                                                                     │
+    └─────────────────────────────────────────────────────────────────────┘
+
+
+    FLUJO COMPLETO:
+
+    ┌──────────┐     JWT String      ┌──────────────────┐
+    │ Frontend │ ─────────────────── │ Backend          │
+    │          │                     │                  │
+    │ Guarda   │                     │ JwtAuthFilter    │
+    │ JWT en   │                     │ lee JWT,         │
+    │ memoria  │                     │ crea AuthToken,  │
+    │          │                     │ guarda en        │
+    │          │                     │ SecurityContext  │
+    └──────────┘                     └──────────────────┘
+```
+
+# Tabla resumen de componentes
+
+| Componente               | Responsabilidad                                   | Cuándo actúa                    |
+| ------------------------ | ------------------------------------------------- | ------------------------------- |
+| SecurityConfig           | Define reglas (qué rutas son públicas/protegidas) | Al iniciar la app               |
+| JwtService               | Crear y validar tokens JWT                        | Login + cada petición protegida |
+| JwtAuthenticationFilter  | Interceptar peticiones, extraer y validar token   | Cada petición HTTP              |
+| CustomUserDetailsService | Cargar usuario de BD, convertir a UserDetails     | Login + validación de token     |
+| AuthService              | Lógica de login (orquesta todo)                   | POST /auth/login                |
+| AuthController           | Recibir petición HTTP, devolver respuesta         | POST /auth/login                |
+| PasswordEncoder          | Hashear (registro) y comparar (login) contraseñas | Registro + Login                |
+| SecurityContextHolder    | Almacenar info del usuario autenticado            | Durante cada petición           |

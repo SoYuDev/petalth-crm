@@ -1,5 +1,5 @@
 -- =================================================================================
--- 1. TRATAMIENTOS / SERVICIOS MÉDICOS (Tabla: medical_treatment)
+-- 1. TRATAMIENTOS / SERVICIOS MÉDICOS (Tabla:  medical_treatment)
 -- =================================================================================
 
 INSERT INTO medical_treatment (id, name, description, duration_minutes, active) VALUES
@@ -13,32 +13,34 @@ ALTER SEQUENCE medical_treatment_id_seq RESTART WITH 6;
 
 
 -- =================================================================================
--- 2. USUARIOS (Tabla:  petalth_user)
+-- 2. USUARIOS (Tabla: petalth_user)
 -- =================================================================================
+
+-- Contraseña para TODOS:  123456
+-- BCrypt hash: $2a$10$hMUPRf1IlgCit6gLOOr//urXBwe.c7XZ7OiHuj17cmrDnPzQw9ZjG
 
 -- VETERINARIOS (IDs 1, 2, 3)
 INSERT INTO petalth_user (id, email, password, first_name, last_name, rol, active) VALUES
-(1, 'ana@vet. com', '$2a$10$EqlAs...', 'Ana', 'Pérez', 'VET', true),
-(2, 'carlos@vet.com', '$2a$10$EqlAs...', 'Carlos', 'Ruiz', 'VET', true),
-(3, 'laura@vet.com', '$2a$10$EqlAs...', 'Laura', 'Gómez', 'VET', true);
+(1, 'ana@vet.com', '$2a$10$hMUPRf1IlgCit6gLOOr//urXBwe.c7XZ7OiHuj17cmrDnPzQw9ZjG', 'Ana', 'Pérez', 'VET', true),
+(2, 'carlos@vet.com', '$2a$10$hMUPRf1IlgCit6gLOOr//urXBwe.c7XZ7OiHuj17cmrDnPzQw9ZjG', 'Carlos', 'Ruiz', 'VET', true),
+(3, 'laura@vet.com', '$2a$10$hMUPRf1IlgCit6gLOOr//urXBwe.c7XZ7OiHuj17cmrDnPzQw9ZjG', 'Laura', 'Gómez', 'VET', true);
 
 -- DUEÑOS (IDs 4, 5, 6, 7)
 INSERT INTO petalth_user (id, email, password, first_name, last_name, rol, active) VALUES
-(4, 'luis@owner.com', '$2a$10$EqlAs...', 'Luis', 'Rodríguez', 'OWNER', true),
-(5, 'maria@owner.com', '$2a$10$EqlAs...', 'María', 'López', 'OWNER', true),
-(6, 'pepe@owner.com', '$2a$10$EqlAs...', 'Pepe', 'García', 'OWNER', true),
-(7, 'sofia@owner.com', '$2a$10$EqlAs... ', 'Sofía', 'Martin', 'OWNER', true);
+(4, 'luis@owner. com', '$2a$10$hMUPRf1IlgCit6gLOOr//urXBwe. c7XZ7OiHuj17cmrDnPzQw9ZjG', 'Luis', 'Rodríguez', 'OWNER', true),
+(5, 'maria@owner.com', '$2a$10$hMUPRf1IlgCit6gLOOr//urXBwe.c7XZ7OiHuj17cmrDnPzQw9ZjG', 'María', 'López', 'OWNER', true),
+(6, 'pepe@owner.com', '$2a$10$hMUPRf1IlgCit6gLOOr//urXBwe.c7XZ7OiHuj17cmrDnPzQw9ZjG', 'Pepe', 'García', 'OWNER', true),
+(7, 'sofia@owner.com', '$2a$10$hMUPRf1IlgCit6gLOOr//urXBwe.c7XZ7OiHuj17cmrDnPzQw9ZjG', 'Sofía', 'Martin', 'OWNER', true);
 
 -- ADMIN (ID 8)
 INSERT INTO petalth_user (id, email, password, first_name, last_name, rol, active) VALUES
-(8, 'admin@petalth.com', '$2a$10$EqlAs...', 'Super', 'Admin', 'ADMIN', true);
+(8, 'admin@petalth.com', '$2a$10$hMUPRf1IlgCit6gLOOr//urXBwe.c7XZ7OiHuj17cmrDnPzQw9ZjG', 'Super', 'Admin', 'ADMIN', true);
 
 ALTER SEQUENCE petalth_user_id_seq RESTART WITH 9;
 
 
 -- =================================================================================
 -- 3. PERFILES ESPECÍFICOS (Tablas: veterinarian, owner)
--- ⚠️ CORREGIDO: Veterinarian ya NO tiene columna 'active'
 -- =================================================================================
 
 INSERT INTO veterinarian (user_id, speciality) VALUES
@@ -69,7 +71,7 @@ ALTER SEQUENCE pet_id_seq RESTART WITH 7;
 
 
 -- =================================================================================
--- 5. CITAS (Tabla:  appointment)
+-- 5. CITAS (Tabla: appointment)
 -- =================================================================================
 
 -- HISTORIAL PASADO (2023)
