@@ -313,7 +313,7 @@ JWT está pensado para apps sin estado ya que el backend no recuerda los usuario
 
 Usamos nuestra clase JwtAuthenticationFilter que se encarga de validar el token de cada petición.
 
-### 5.2. AuthenticationManager
+### 5.2. Bean AuthenticationManager
 
 Objeto que Spring usa para autenticar usuarios con UserDetailsService y necesitaremos cuando hagamos login en el AuthController
 
@@ -324,7 +324,7 @@ public AuthenticationManager authenticationManager(AuthenticationConfiguration c
 }
 ```
 
-### 5.3. PasswordEncoder
+### 5.3. Bean PasswordEncoder
 
 Bean necesario para encriptar las contraseñas antes de guardarlas en la base de datos. <br>
 BCrypt es un algoritmo fuerte y seguro para guardar contraseñas
@@ -335,3 +335,27 @@ BCrypt es un algoritmo fuerte y seguro para guardar contraseñas
         return new BCryptPasswordEncoder();
     }
 ```
+
+## 6. Sistema de login con JWT
+
+### Creación de DTOs LoginRequest y AuthResponse
+
+Necesarios para la comunicación de datos entre Front y Back
+
+```java
+public record LoginRequest(
+        String email,
+        String password
+) {}
+```
+
+```java
+public record AuthResponse(
+        String token,
+        String email,
+        String rol,
+        String mensaje
+) {}
+```
+
+
