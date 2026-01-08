@@ -358,4 +358,45 @@ public record AuthResponse(
 ) {}
 ```
 
+### Clase AuthService
 
+Clase que procesa el login (Validación de credenciales y generación del token JWT)
+
+````java
+@Service
+@RequiredArgsConstructor
+public class AuthService {
+    private final UserRepository userRepository;
+    private final JwtService jwtService;
+    private final AuthenticationManager authenticationManager;
+    private final UserDetailsService userDetailsService;
+
+    public AuthResponse login(LoginRequest loginRequest) {
+        // 1. Autenticar al usuario (verifica email + password)
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        loginRequest.email(),
+                        loginRequest.password()
+                )
+        );
+
+        // 2. Buscar al usuario en BD
+        User user = userRepository.findByEmail(loginRequest.email())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // 3. Cargar UserDetails para generar el Token
+        UserDetails userDetails = userDetailsService.loadUserByUsername(loginRequest.email());
+
+        // 4. Generar token JWT
+        String token = jwtService.generateToken(userDetails);
+
+        // 5. Devolver respuesta
+        return new AuthResponse(
+                token,
+                user.getEmail(),
+                user.getRol().name(),
+                "Login exitoso"
+        );
+    }
+}```
+````
