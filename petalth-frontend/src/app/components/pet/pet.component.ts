@@ -1,6 +1,7 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { PetService } from './pet.service';
 import { Pet } from './pet';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-pet',
@@ -11,6 +12,7 @@ import { Pet } from './pet';
 })
 export class PetComponent implements OnInit {
   private petService = inject(PetService);
+  private route = inject(ActivatedRoute);
 
   pets = signal<Pet[]>([]);
 
@@ -19,7 +21,9 @@ export class PetComponent implements OnInit {
   }
 
   loadPets(): void {
-    const ownerId = 6;
+    // Obtenemos el 'ownerId' que definimos en app.routes.ts
+    const ownerId = Number(this.route.snapshot.paramMap.get('ownerId'));
+    // El service se encarga de llamar al endpoint expuesto
     this.petService.getByOwnerId(ownerId).subscribe((data) => {
       this.pets.set(data);
     });

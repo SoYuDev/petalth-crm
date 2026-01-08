@@ -5,7 +5,8 @@ import { AppointmentComponent } from './components/appointment/appointment.compo
 
 export const routes: Routes = [
   { path: '', component: PetComponent },
-  { path: 'pets', component: PetComponent },
+  // Uso de parámetros dinámicos
+  { path: 'pets/:ownerId', component: PetComponent },
   { path: 'veterinarians', component: VeterinarianComponent },
   { path: 'appointments', component: AppointmentComponent },
 ];
