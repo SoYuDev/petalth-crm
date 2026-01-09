@@ -33,7 +33,7 @@ public class AuthService {
         User user = userRepository.findByEmail(loginRequest.email())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // 3. Cargar UserDetails para generar el Token
+        // 3. Cargar UserDetails (Spring Security no entiende User pero si UserDetails) para generar el Token
         UserDetails userDetails = userDetailsService.loadUserByUsername(loginRequest.email());
 
         // 4. Generar token JWT

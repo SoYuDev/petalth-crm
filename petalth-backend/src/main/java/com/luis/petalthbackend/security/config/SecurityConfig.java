@@ -28,7 +28,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 // Permitimos el acceso a TODAS las rutas sin autenticación
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**").permitAll() // 2. Permitir rutas públicas
+                        .requestMatchers("/auth/**", "/api/pets/**").permitAll() // 2. Permitir rutas públicas
                         .anyRequest().authenticated() // 3. Proteger todas las demás rutas
                 )
                 .sessionManagement(session -> session

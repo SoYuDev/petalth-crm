@@ -59,14 +59,14 @@ h6,
 }
 
 .navbar-logo {
-  height: 80px;
+  height: 62px;
   width: auto;
 }
 
 /* Responsive: Logo más grande en pantallas medianas y grandes */
 @media (min-width: 768px) {
   .navbar-logo {
-    height: 130px;
+    height: 72px;
   }
 }
 
@@ -80,6 +80,6 @@ h6,
 }
 
 .fontfix {
-  margin-top: 10px !important;
+  margin-top: 2px !important;
 
 }
