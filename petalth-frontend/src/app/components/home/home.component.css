@@ -1,12 +1,12 @@
 * {
   margin: 0;
-  padding: 0;
   box-sizing: border-box;
 }
-
+/* INFINITE SLIDER */
+/*-------------------------------------------------------------------------------------------------------------------*/
 .slider {
   width: 100%;
-  border: 1px solid red;
+  /* border: 1px solid red; */
   height: var(--height);
   overflow: hidden;
   mask-image: linear-gradient(to right, transparent, #000 10% 90%, transparent);
@@ -51,4 +51,23 @@
 }
 .slider .item:hover {
   filter: grayscale(0);
+}
+/*-------------------------------------------------------------------------------------------------------------------*/
+
+/* CARD CSS*/
+.card {
+  transition: transform 0.3s ease-out, box-shadow 0.3s ease;
+
+  /* Opcional: Esto ayuda a que el navegador renderice mejor el movimiento */
+  will-change: transform;
+}
+
+.card:hover {
+  transform: rotate(2deg) scale(1.02);
+
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+
+  cursor: pointer;
+
+  z-index: 10;
 }
