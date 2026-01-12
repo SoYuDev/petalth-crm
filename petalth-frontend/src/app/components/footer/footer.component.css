@@ -1,0 +1,41 @@
+.footer-dark {
+  background-color: #1a1a1a;
+  color: #f8f9fa;
+  font-size: 0.95rem;
+  border-top: 4px solid rgb(211, 211, 211);
+}
+
+.footer-dark a:hover {
+  color: var(--bs-primary) !important;
+  transition: color 0.3s ease;
+}
+
+/* Estilo para los botones redondos de redes sociales */
+.btn-floating {
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.btn-floating:hover {
+  background-color: var(--bs-primary);
+  border-color: var(--bs-primary);
+  color: white !important;
+}
+
+.btn-floating:hover i {
+  transition: color 2s ease;
+  color: white !important;
+}
+
+hr {
+  opacity: 0.4;
+  border-color: white;
+}
+
+.highlight {
+  color: var(--bs-primary);
+}

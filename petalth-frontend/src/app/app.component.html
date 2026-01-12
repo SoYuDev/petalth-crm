@@ -1,3 +1,8 @@
 <app-navbar></app-navbar>
 
-<router-outlet></router-outlet>
+<!-- Si hubiese un error 404, el footer subiría para arriba, creamos esta clase de soporte para evitarlo. -->
+<div class="content-wrap">
+    <router-outlet></router-outlet>
+</div>
+
+<app-footer></app-footer>

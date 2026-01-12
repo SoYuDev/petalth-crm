@@ -109,3 +109,15 @@ h2 {
 }
 
 /*-------------------------------------------------------------------------------------------------------------------*/
+
+@media (max-width: 768px) {
+  .service-img {
+    height: 150px;
+
+    /* IMPORTANTE: Esto recorta la imagen para que no se deforme al cambiarle la altura */
+    object-fit: cover;
+
+    /* Opcional: Centra el recorte de la imagen */
+    object-position: center;
+  }
+}

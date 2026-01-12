@@ -13,6 +13,20 @@
   --bs-body-color: #2d3748;
 }
 
+/* FIX PARA LA CLASE content-wrap (app.component.html) */
+/* 1. Hacemos que la app ocupe al menos el 100% de la altura de la pantalla */
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* 2. Hacemos que el contenido central se expanda todo lo posible */
+.content-wrap {
+  flex: 1;
+  /* Esto empuja el footer hacia abajo si sobra espacio */
+}
+
 * {
   margin: 0;
   box-sizing: border-box;
