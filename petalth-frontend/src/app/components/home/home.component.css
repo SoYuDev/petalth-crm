@@ -2,6 +2,42 @@
   margin: 0;
   box-sizing: border-box;
 }
+
+.hero {
+  background-color: rgb(226, 240, 240);
+}
+
+.hero-img {
+  /* Esto crea una forma no rectangular */
+  border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+
+  /* Opcional: una animación lenta para que la forma "respire" */
+  animation: morph 6s ease-in-out infinite;
+}
+
+@keyframes morph {
+  0% {
+    border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+  }
+  50% {
+    border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%;
+  }
+  100% {
+    border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+  }
+}
+
+h2 {
+  color: var(--bs-primary);
+  font-size: 3rem;
+}
+
+.cursive {
+  font-size: 1rem;
+  font-style: italic;
+  color: #444444;
+  font-weight: 400;
+}
 /* INFINITE SLIDER */
 /*-------------------------------------------------------------------------------------------------------------------*/
 .slider {
@@ -71,3 +107,5 @@
 
   z-index: 10;
 }
+
+/*-------------------------------------------------------------------------------------------------------------------*/
