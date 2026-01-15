@@ -29,6 +29,9 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
+                // Le decimos a Spring security que empiece a gestionar las peticiones que vienen de otros orígenes
+                // Le decimos que use la CORS config que tenemos en el Bean de abajo.
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 // Deshabilitamos CSRF para que no pida tokens en las peticiones POST/PUT
                 .csrf(csrf -> csrf.disable())
                 // Permitimos el acceso a TODAS las rutas sin autenticación
@@ -55,7 +58,8 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    // Configuración de a quién permitimos entrar
+    // Configuración CORS de a quién permitimos entrar
+    // CORS nos permite decirle al filtro del navegador qué peticiones HTTP puede hacer.
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
