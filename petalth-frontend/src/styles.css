@@ -1,5 +1,5 @@
 /* === FUENTES === */
-@import url("https://fonts.googleapis.com/css2? family=Inter:wght@400;500;600&family=Nunito:wght@700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Nunito:wght@700;800&display=swap");
 
 :root {
   /* Fuente por defecto (cuerpo) */
@@ -13,6 +13,24 @@
   --bs-body-color: #2d3748;
 }
 
+/* FIX PARA LA CLASE content-wrap (app.component.html) */
+/* 1. Hacemos que la app ocupe al menos el 100% de la altura de la pantalla */
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* 2. Hacemos que el contenido central se expanda todo lo posible */
+.content-wrap {
+  flex: 1;
+  /* Esto empuja el footer hacia abajo si sobra espacio */
+}
+
+* {
+  margin: 0;
+  box-sizing: border-box;
+}
 /* === HEADERS CON NUNITO === */
 h1,
 h2,
@@ -29,6 +47,12 @@ h6,
 .display-6 {
   font-family: "Nunito", sans-serif;
   font-weight: 700;
+}
+
+p {
+  font-weight: 500;
+  font-size: 1.1rem;
+  line-height: 1.6;
 }
 
 /* === BOTONES === */
@@ -59,14 +83,14 @@ h6,
 }
 
 .navbar-logo {
-  height: 80px;
+  height: 62px;
   width: auto;
 }
 
 /* Responsive: Logo más grande en pantallas medianas y grandes */
 @media (min-width: 768px) {
   .navbar-logo {
-    height: 130px;
+    height: 72px;
   }
 }
 
@@ -80,6 +104,5 @@ h6,
 }
 
 .fontfix {
-  margin-top: 10px !important;
-
+  margin-top: 2px !important;
 }
