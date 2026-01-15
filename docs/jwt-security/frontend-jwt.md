@@ -166,3 +166,82 @@ export class LoginComponent {
 ```
 
 ### login HTML
+
+````html
+<div class="container d-flex justify-content-center align-items-center vh-100">
+  <div class="card p-4 shadow-sm" style="max-width: 400px; width: 100%;">
+    <div class="card-body">
+      <h3 class="card-title text-center mb-4">Iniciar Sesión</h3>
+
+      <!--       
+      1. Conectamos el formulario [formGroup] conecta HTML con loginForm, que hace referencia a la variable del .ts
+      2. (ngSubmit)="onSubmit()" al enviar el formulario (pulsar boton con type submit) llamamos al método onSubmit
+      -->
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+        <div class="mb-3">
+          <label for="email" class="form-label">Email</label>
+          <!--
+          Class Binding: class.NOMBRE_CLASE="CONDICION" -> class.is-invalid es una clase de Bootstrap
+          En este caso: El email incumple alguna regla y el usuario ha tocado este campo (si no saldría directamente rojo antes de que lo toque)?
+          -->
+          <input
+            type="email"
+            class="form-control"
+            id="email"
+            formControlName="email"
+            placeholder="user@petalth.com"
+            [class.is-invalid]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
+          />
+
+          <!-- Si el input email tiene algún error y ha sido previamente tocado... -->
+          @if (loginForm.get('email')?.hasError('email') &&
+          loginForm.get('email')?.touched) {
+          <!-- Solo se muestra si el input hermano es invalido-->
+          <div class="invalid-feedback">Introduce un email válido.</div>
+          }
+        </div>
+
+        <div class="mb-3">
+          <label for="password" class="form-label">Contraseña</label>
+          <input
+            type="password"
+            class="form-control"
+            id="password"
+            formControlName="password"
+            placeholder="******"
+          />
+        </div>
+
+        <!--         
+        1. Al principio signal está vaciío : ''
+        2. Si hacemos mal el login el backend devuelve error y el servicio hace .set('Credenciales Malas')
+        3. Se muestra el mensaje de error
+        -->
+        @if (errorMessage()) {
+        <div class="alert alert-danger text-center" role="alert">
+          {{ errorMessage() }}
+        </div>
+        }
+
+        <div class="d-grid gap-2">
+          <!-- Controlamos el atributo disabled del HTML. Si loginForm.invalid se deshabilita -->
+          <button
+            type="submit"
+            class="btn btn-primary"
+            [disabled]="loginForm.invalid"
+          >
+            Entrar
+          </button>
+        </div>
+      </form>
+
+      <div class="mt-3 text-center">
+        <small class="text-muted"
+          >¿No tienes cuenta? <a routerLink="/register">Regístrate</a></small
+        >
+      </div>
+    </div>
+  </div>
+</div>
+```
+````
