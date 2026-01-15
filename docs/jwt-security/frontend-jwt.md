@@ -81,3 +81,25 @@ export class AuthService {
   }
 }
 ```
+
+## 3. Login Component
+
+Capturar datos y validarlos para pasarselos authService.
+
+### Módulo ReactiveFormsModule
+
+Una de las maneras que nos ofrece Angular de validar que, por ejemplo, el correo es correcto o que la contraseña tenga X carácteres.
+
+### Variable loginForm
+
+Es un objeto de tipo FormGroup (del módulo ReactiveFormsModule) que contiene los inputs y vigila lo que usuario escribe. Angular mantiene esta variable sincronizada en tiempo real con el HTML. Esto lo conseguimos usando en el html [formGroup]="loginForm"
+
+- this.loginForm.valid: Nos da un objeto JSON con lo que el usuario ha escrito p.j. {email: pepe@..., password: 1234}
+- this.loginForm.valid: Devuelve true o false automáticamente si se cumplen las validaciones que pusimos.
+- this.loginForm.dirty: Dice si el usuario ha modificado algo.
+
+### Método onSubmit
+Comprueba que loginForm (Objeto con los inputs del usuario) es válido (no le falta el @...)
+
+### Variable credentials
+Extraemos los datos de loginForm. ?? '' significa que si el valor el nulo pon una cadena vacía.
