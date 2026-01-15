@@ -3,6 +3,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../app/service/auth.service';
 import { CommonModule } from '@angular/common';
+import { LoginRequest } from './auth.interfaces';
 
 @Component({
   selector: 'app-login',
@@ -33,7 +34,7 @@ export class LoginComponent {
     }
 
     // Extraemos los valores del formulario que había en loginForm
-    const credentials = {
+    const credentials: LoginRequest = {
       email: this.loginForm.value.email ?? '',
       password: this.loginForm.value.password ?? '',
     };
