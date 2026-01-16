@@ -4,10 +4,17 @@ export interface LoginRequest {
   password: string;
 }
 
+export enum Role {
+  ADMIN = 'ADMIN',
+  USER = 'USER',
+  VET = 'VET',
+}
+
 // 2. Lo que recibes del servidor (La estructura exacta de tu JSON)
 export interface AuthResponse {
   token: string;
   email: string;
-  rol: 'ADMIN' | 'USER' | 'VET';
+  nombre: string;
+  rol: Role;
   mensaje: string;
 }

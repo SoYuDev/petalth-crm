@@ -43,6 +43,7 @@ public class AuthService {
         return new AuthResponse(
                 token,
                 user.getEmail(),
+                user.getFirstName(),
                 user.getRol().name(),
                 "Login exitoso"
         );

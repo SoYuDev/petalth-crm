@@ -34,7 +34,7 @@ INSERT INTO petalth_user (id, email, password, first_name, last_name, rol, activ
 
 -- ADMIN (ID 8)
 INSERT INTO petalth_user (id, email, password, first_name, last_name, rol, active) VALUES
-(8, 'admin@petalth.com', '$2a$10$hMUPRf1IlgCit6gLOOr//urXBwe.c7XZ7OiHuj17cmrDnPzQw9ZjG', 'Super', 'Admin', 'ADMIN', true);
+(8, 'admin@petalth.com', '$2a$10$hMUPRf1IlgCit6gLOOr//urXBwe.c7XZ7OiHuj17cmrDnPzQw9ZjG', 'Luisi', 'Admin', 'ADMIN', true);
 
 ALTER SEQUENCE petalth_user_id_seq RESTART WITH 9;
 

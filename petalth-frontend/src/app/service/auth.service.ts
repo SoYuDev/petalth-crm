@@ -4,6 +4,7 @@ import { tap } from 'rxjs';
 import {
   AuthResponse,
   LoginRequest,
+  Role,
 } from '../components/login/auth.interfaces';
 
 @Injectable({
@@ -18,19 +19,21 @@ export class AuthService {
 
   // Enviamos email y password al backend - LoginRequest (Interfaz para DTO)
   login(credentials: LoginRequest) {
-    return this.http.post<any>(`${this.apiUrl}/login`, credentials).pipe(
-      // Guarda el String del token en el local storage.
-      tap((response) => {
-        // AQUÍ es donde el token entra al localStorage
-        localStorage.setItem('token', response.token);
+    return this.http
+      .post<AuthResponse>(`${this.apiUrl}/login`, credentials)
+      .pipe(
+        // Guarda el String del token en el local storage.
+        tap((response) => {
+          // AQUÍ es donde el token entra al localStorage
+          localStorage.setItem('token', response.token);
 
-        // Guardamos el objeto entero en la variable signal currentUser
-        localStorage.setItem('currentUser', JSON.stringify(response));
+          // Guardamos el objeto entero en la variable signal currentUser
+          localStorage.setItem('currentUser', JSON.stringify(response));
 
-        // currentUser que era null, pasa a tener los datos del usuario.
-        this.currentUser.set(response);
-      })
-    );
+          // currentUser que era null, pasa a tener los datos del usuario.
+          this.currentUser.set(response);
+        })
+      );
   }
 
   // Borra el token del local storage y ponemos la señal a null para que la UI sepa que no hay nadie logueado.
@@ -56,5 +59,39 @@ export class AuthService {
   // Esto se consigue mediante el operador !!
   isLoggedIn(): boolean {
     return !!localStorage.getItem('token');
+  }
+
+  // Helper Methods
+  // Pregunta si tiene un rol en específico.
+  hasRole(role: Role): boolean {
+    return this.currentUser()?.rol == role;
+  }
+
+  /**
+   * Aunque el usuario solo tenga un rol, a veces un botón
+   * es visible para varios tipos de usuario (ej: Admin y Vet).
+   * Uso: authService.isOneOf(['ADMIN', 'VET'])
+   */
+  isOneOf(roles: Role[]): boolean {
+    // '?' comprueba si hay current user, si no devuelve undefined
+    const currentRole = this.currentUser()?.rol;
+    if (!currentRole) return false;
+    return roles.includes(currentRole);
+  }
+
+  /**
+   * Helper Methods para cada Rol.
+   * Hacen el código mucho más limpio.
+   */
+  isAdmin(): boolean {
+    return this.hasRole(Role.ADMIN);
+  }
+
+  isVet(): boolean {
+    return this.hasRole(Role.VET);
+  }
+
+  isUser(): boolean {
+    return this.hasRole(Role.USER);
   }
 }
