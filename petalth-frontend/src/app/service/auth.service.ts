@@ -61,7 +61,7 @@ export class AuthService {
     return !!localStorage.getItem('token');
   }
 
-  // 2. Método privado para leer del 'disco duro'
+  // 2. Método privado para leer del 'disco duro' y mantener la sesion iniciada mientras navegamos
   private getUserFromStorage(): AuthResponse | null {
     const userStr = localStorage.getItem('currentUser');
     if (userStr) {
