@@ -41,6 +41,7 @@ public class AuthService {
 
         // 5. Devolver respuesta
         return new AuthResponse(
+                user.getId(),
                 token,
                 user.getEmail(),
                 user.getFirstName(),

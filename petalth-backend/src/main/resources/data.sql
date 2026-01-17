@@ -27,7 +27,7 @@ INSERT INTO petalth_user (id, email, password, first_name, last_name, rol, activ
 
 -- DUEÑOS (IDs 4, 5, 6, 7)
 INSERT INTO petalth_user (id, email, password, first_name, last_name, rol, active) VALUES
-(4, 'luis@owner. com', '$2a$10$hMUPRf1IlgCit6gLOOr//urXBwe. c7XZ7OiHuj17cmrDnPzQw9ZjG', 'Luis', 'Rodríguez', 'OWNER', true),
+(4, 'luis@owner.com', '$2a$10$hMUPRf1IlgCit6gLOOr//urXBwe. c7XZ7OiHuj17cmrDnPzQw9ZjG', 'Luis', 'Rodríguez', 'OWNER', true),
 (5, 'maria@owner.com', '$2a$10$hMUPRf1IlgCit6gLOOr//urXBwe.c7XZ7OiHuj17cmrDnPzQw9ZjG', 'María', 'López', 'OWNER', true),
 (6, 'pepe@owner.com', '$2a$10$hMUPRf1IlgCit6gLOOr//urXBwe.c7XZ7OiHuj17cmrDnPzQw9ZjG', 'Pepe', 'García', 'OWNER', true),
 (7, 'sofia@owner.com', '$2a$10$hMUPRf1IlgCit6gLOOr//urXBwe.c7XZ7OiHuj17cmrDnPzQw9ZjG', 'Sofía', 'Martin', 'OWNER', true);

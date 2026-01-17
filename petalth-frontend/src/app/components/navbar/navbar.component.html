@@ -1,6 +1,6 @@
 <nav class="navbar navbar-expand-lg bg-body-tertiary sticky-top">
   <div class="container">
-    <a class="navbar-brand" href="#">
+    <a class="navbar-brand" href="/">
       <img src="../../../assets/media/petalth-logo.png" alt="Petalth Logo" class="navbar-logo">
     </a>
 
@@ -28,15 +28,31 @@
         }
         <!-- Si estamos logueados... -->
         @if (authService.currentUser()) {
+        <!-- Si somos usuarios... -->
+        @if (authService.isUser()) {
         <li class="nav-item">
-          <a class="nav-link" routerLink="/pets" routerLinkActive="active">Mis Mascotas</a>
+          <a class="nav-link" [routerLink]="['/pets', authService.currentUser()?.id]" routerLinkActive="active">
+            Mis Mascotas
+          </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" routerLink="/veterinarians" routerLinkActive="active">Veterinarios</a>
+          <a class="nav-link" routerLink="/appointments/new" routerLinkActive="active">Pedir Cita</a>
         </li>
+        }
+
+        <!-- Si somos veterinarios... -->
+        @if (authService.isVet()) {
         <li class="nav-item">
-          <a class="nav-link" routerLink="/appointments" routerLinkActive="active">Citas</a>
+          <a class="nav-link" routerLink="/appointments" routerLinkActive="active">Mi Agenda</a>
         </li>
+        }
+
+        <!-- Si somos Administradores...-->
+        @if (authService.isAdmin()) {
+        <li class="nav-item">
+          <a class="nav-link text-danger" routerLink="/admin/users" routerLinkActive="active">Usuarios</a>
+        </li>
+        }
         }
       </ul>
       <!-- Menú de la derecha -->

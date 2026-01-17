@@ -15,7 +15,7 @@ export class AuthService {
   private apiUrl = 'http://localhost:8080/auth';
 
   // Usamos un signal para que la app sepa en tiempo real si hay usuario, esta puede ser AuthResponse (Interfaz para DTO) o null.
-  currentUser = signal<AuthResponse | null>(null);
+  currentUser = signal<AuthResponse | null>(this.getUserFromStorage());
 
   // Enviamos email y password al backend - LoginRequest (Interfaz para DTO)
   login(credentials: LoginRequest) {
@@ -32,7 +32,7 @@ export class AuthService {
 
           // currentUser que era null, pasa a tener los datos del usuario.
           this.currentUser.set(response);
-        })
+        }),
       );
   }
 
@@ -59,6 +59,20 @@ export class AuthService {
   // Esto se consigue mediante el operador !!
   isLoggedIn(): boolean {
     return !!localStorage.getItem('token');
+  }
+
+  // 2. Método privado para leer del 'disco duro'
+  private getUserFromStorage(): AuthResponse | null {
+    const userStr = localStorage.getItem('currentUser');
+    if (userStr) {
+      try {
+        return JSON.parse(userStr); // Recuperamos el objeto
+      } catch (e) {
+        console.error('Error al recuperar sesión', e);
+        return null;
+      }
+    }
+    return null; // Si no hay nada, devolvemos null
   }
 
   // Helper Methods

@@ -48,7 +48,7 @@ export class LoginComponent {
       // Si hay un error (Spring Boot manda 401 o 403)
       error: (err) => {
         console.error('Error en login:', err);
-        this.errorMessage.set('Credenciales incorrectas. Inténtalo de nuevo.');
+        this.errorMessage.set('Credenciales incorrectas o fallo del servidor. Inténtalo de nuevo.');
       },
     });
   }
