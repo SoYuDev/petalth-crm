@@ -1,9 +1,10 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
-import { tap } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 import {
   AuthResponse,
   LoginRequest,
+  RegisterRequest,
   Role,
 } from '../components/login/auth.interfaces';
 
@@ -32,6 +33,19 @@ export class AuthService {
 
           // currentUser que era null, pasa a tener los datos del usuario.
           this.currentUser.set(response);
+        }),
+      );
+  }
+
+  register(datos: RegisterRequest): Observable<AuthResponse> {
+    return this.http
+      .post<AuthResponse>(`${this.apiUrl}/auth/register`, datos)
+      .pipe(
+        // Cuando el servidor hace 200 OK guardamos sesion en el navegador.
+        tap((response) => {
+          // SI QUIERES QUE AL REGISTRARSE, SE LOGUEE AUTOMÁTICAMENTE:
+          this.currentUser.set(response);
+          localStorage.setItem('currentUser', JSON.stringify(response));
         }),
       );
   }

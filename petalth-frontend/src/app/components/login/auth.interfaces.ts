@@ -19,3 +19,13 @@ export interface AuthResponse {
   rol: Role;
   mensaje: string;
 }
+
+// 3. Lo que enviamos al servidor para registrarnos
+export interface RegisterRequest {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  phone: string;
+  address: string;
+}

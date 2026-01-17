@@ -77,6 +77,7 @@ public class AuthService {
         Owner owner = Owner.builder()
                 .user(savedUser)
                 .phone(registerRequest.phone())
+                .address(registerRequest.address())
                 .build();
 
         ownerRepository.save(owner);

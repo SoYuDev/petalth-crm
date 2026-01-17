@@ -5,5 +5,6 @@ public record RegisterRequest(
         String password,
         String firstName,
         String lastName,
-        String phone) {
+        String phone,
+        String address) {
 }
