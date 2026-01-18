@@ -3,6 +3,7 @@ import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from '../service/auth.service';
 import { Role } from '../components/login/auth.interfaces';
 
+// Archivo que se encarga de verificar las reglas de seguridad antes de entrar a la ruta
 export const authGuard: CanActivateFn = (route, state) => {
   const authService = inject(AuthService);
   const router = inject(Router);

@@ -13,7 +13,7 @@ import {
 })
 export class AuthService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8080/auth';
+  private apiUrl = 'http://localhost:8080';
 
   // Usamos un signal para que la app sepa en tiempo real si hay usuario, esta puede ser AuthResponse (Interfaz para DTO) o null.
   currentUser = signal<AuthResponse | null>(this.getUserFromStorage());
@@ -21,7 +21,7 @@ export class AuthService {
   // Enviamos email y password al backend - LoginRequest (Interfaz para DTO)
   login(credentials: LoginRequest) {
     return this.http
-      .post<AuthResponse>(`${this.apiUrl}/login`, credentials)
+      .post<AuthResponse>(`${this.apiUrl}/auth/login`, credentials)
       .pipe(
         // Guarda el String del token en el local storage.
         tap((response) => {
@@ -43,6 +43,8 @@ export class AuthService {
       .pipe(
         // Cuando el servidor hace 200 OK guardamos sesion en el navegador.
         tap((response) => {
+          // Seteamos el Token
+          localStorage.setItem('token', response.token);
           // SI QUIERES QUE AL REGISTRARSE, SE LOGUEE AUTOMÁTICAMENTE:
           this.currentUser.set(response);
           localStorage.setItem('currentUser', JSON.stringify(response));

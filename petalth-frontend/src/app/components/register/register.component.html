@@ -1,0 +1,51 @@
+<div class="container d-flex justify-content-center align-items-center min-vh-100">
+    <div class="card shadow p-4" style="width: 100%; max-width: 550px;">
+
+        <div class="text-center mb-4">
+            <h2 class="fw-bold">Crear Cuenta</h2>
+            <p class="text-muted">Únete a Petalth para cuidar de tus mascotas</p>
+        </div>
+
+        @if (errorMessage) {
+        <div class="alert alert-danger">{{ errorMessage }}</div>
+        }
+
+        <form (ngSubmit)="onRegister()">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Nombre</label>
+                    <input type="text" class="form-control" [(ngModel)]="registerData.firstName" name="firstName"
+                        required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Apellidos</label>
+                    <input type="text" class="form-control" [(ngModel)]="registerData.lastName" name="lastName"
+                        required>
+                </div>
+                <div class="col-md-12">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-control" [(ngModel)]="registerData.email" name="email" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Teléfono</label>
+                    <input type="text" class="form-control" [(ngModel)]="registerData.phone" name="phone" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Dirección</label>
+                    <input type="text" class="form-control" [(ngModel)]="registerData.address" name="address" required>
+                </div>
+                <div class="col-md-12">
+                    <label class="form-label">Contraseña</label>
+                    <input type="password" class="form-control" [(ngModel)]="registerData.password" name="password"
+                        required>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 mt-4 py-2">Registrarse</button>
+        </form>
+
+        <p class="text-center mt-3">
+            ¿Ya tienes cuenta? <a routerLink="/login" class="text-decoration-none">Inicia sesión</a>
+        </p>
+    </div>
+</div>
