@@ -13,28 +13,38 @@ import {
 })
 export class AuthService {
   private http = inject(HttpClient);
+
   private apiUrl = 'http://localhost:8080';
 
   // Usamos un signal para que la app sepa en tiempo real si hay usuario, esta puede ser AuthResponse (Interfaz para DTO) o null.
   currentUser = signal<AuthResponse | null>(this.getUserFromStorage());
 
-  // Enviamos email y password al backend - LoginRequest (Interfaz para DTO)
-  login(credentials: LoginRequest) {
-    return this.http
-      .post<AuthResponse>(`${this.apiUrl}/auth/login`, credentials)
-      .pipe(
-        // Guarda el String del token en el local storage.
-        tap((response) => {
-          // AQUÍ es donde el token entra al localStorage
-          localStorage.setItem('token', response.token);
+  // Enviamos email y password al backend - LoginRequest (Interfaz que representa un DTO)
+  login(credentials: LoginRequest): Observable<AuthResponse> {
+    return (
+      this.http
+        // Hacemos un método post, al servidor nuestras credenciales (LoginRequest). Se nos devolveran datos que serán mapeados en la interfaz AuthResponse
+        .post<AuthResponse>(`${this.apiUrl}/auth/login`, credentials)
+        // Hasta este punto, tenemos lo que se llama un 'Cold Observable' Tenemos los datos necesarios para recibir la información pero aun no hemos hecho nada.
 
-          // Guardamos el objeto entero en la variable signal currentUser
-          localStorage.setItem('currentUser', JSON.stringify(response));
+        //.pipe() es un método de los observables una tuberia que conectamos esperando para procesar los datos que lleguen cuando hagamos .subscribe()
+        .pipe(
+          // .tap(response) es un método de .pipe() que nos permite ver los datos sin modificarlos. 'response' es el objeto que representa en JSON la respuesta del servidor
+          // basicamente hay en formato JSON el 'AuthResponse' de Java (id, token, email, nombre, rol y mensaje)
+          tap((response) => {
+            // AQUÍ es donde el token entra al localStorage
+            localStorage.setItem('token', response.token);
 
-          // currentUser que era null, pasa a tener los datos del usuario.
-          this.currentUser.set(response);
-        }),
-      );
+            // Guardamos el objeto entero en la variable signal currentUser
+            localStorage.setItem('currentUser', JSON.stringify(response));
+
+            // currentUser que era null, pasa a tener los datos del usuario.
+            this.currentUser.set(response);
+
+            // Una vez realizado todo, tendremos en el localStorage dos items token y currentUser(con todos los datos id, token...) y el signal como currentUser también.
+          }),
+        )
+    );
   }
 
   register(datos: RegisterRequest): Observable<AuthResponse> {

@@ -13,7 +13,7 @@ Usaremos una arquitectura JWT que tiene las siguientes partes:
     - `exp` (Expiration): Fecha de caducidad del token.
     - `iss` (Issuer): Quién emitió el token (opcional).
   - Claims Públicos o Personalizados (Los que añadimos para la funcionalidad de nuestra app)
-    - Roles: Cuando la petición llega al backend el filtro `(JwtAuthenticationFiler)` extrae el rol y sabe si tenemos permiso para entrar a la ruta de '/admin'.
+    - Roles: Cuando la petición llega al backend el filtro `(JwtAuthenticationFilter)` extrae el rol y sabe si tenemos permiso para entrar a la ruta de '/admin'.
     - ID del usuario: Para que cuando guardes la mascota, el backend sepa a qué ID asociarla.
     - Nombre: Para que el Navbar pueda decir 'Hola, Luis' nada mas leer el token.
 - 3. Signature (La firma)
@@ -39,7 +39,7 @@ public class JwtService {
         return generateToken(Map.of(), userDetails);
     }
 
-    // como extraClaims podríamos poner el rol o un nombre al token p.j.
+    // con extraClaims podríamos poner el rol o un nombre al token p.j.
     /*  Map<String, Object> datosExtra = Map.of(
         "rol", "ADMIN",
         "nombre", "Luis García"
@@ -159,7 +159,7 @@ Clase obligatoria en arquitecturas JWT. Extiende de `OncePerRequestFilter`, lo q
 **1. Intercepta todas las peticiones HTTP antes de llegar a los controladores.**
 <br>
 <br>
-**2. Busca en el token el header `Authorization`, lo valida con `JwtService` y si es correcto, "identifica" al usuario dentro del contexto Spring Security para esa petición específica.**
+**2. Busca en la petición el header `Authorization`, lo valida con `JwtService` y si es correcto, "identifica" al usuario dentro del contexto Spring Security para esa petición específica.**
 
 - `doFilterInternal` es el método que "detiene" la petición
   - 1. Busca el header `Authorization`. Si no existe o no empieza por `Bearer ` aplica el "paracaidas" y deja pasar la petición a rutas públicas `/login` o `/register`
@@ -303,7 +303,7 @@ Define una tecnología de encriptación, en nuestro caso BCrypt que es el están
 
 ### Gestor de Autenticación - Bean (AuthenticationManager)
 
-Este bean es un puento que luego será inyectado en `AuthService`.
+Este bean es un puente que luego será inyectado en `AuthService`.
 
 - Objeto encargado de coger el email y contraseña del login. Después de comprobar si las credenciales son correctas, se dispara el proceso de verificación de contraseñas de Spring.
 
@@ -505,3 +505,92 @@ public class AuthController {
 ```
 
 # Clases esenciales Frontend
+
+## 1. app.config.ts
+
+Es el archivo de configuración global de la aplicación.
+
+### Funcion:
+
+**Configura el cliente de peticiones HTTP para que utilice nuestro interceptor de seguridad de forma global.**
+
+- `provideHttpClient(withInterceptors([authInterceptor]))`: Le dice a Angular que cada vez que hagamos una petición HTTP la pase por el interceptor `auth.interceptor.ts`
+
+```typescript
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideRouter(routes),
+    provideHttpClient(withInterceptors([authInterceptor])),
+  ],
+};
+```
+
+## 2. auth.service.ts
+
+A diferencia de AuthService.java del backend, que genera tokens. Este servicio se encarga de gestionarlos y almacenarlos en el navegador para que la aplicación sepa quién eres en todo momento.
+
+### Funcion:
+
+Gestiona la autenticación mediante **Signals**, que proporcionan la reactividad en Angular. También **coordina la comunicación con el backend para el Login y Registro**.
+
+- `currentUser = signal<AuthResponse | null>(...);`: Es el corazón reactivo de la app que representa al usuario. Si el Signal cambia, todos los componentes como el Navbar cambiarán.
+- `localStorage`: Se utiliza como el disco duro del navegador. Guardamos el token y los datos del usuario para que si refrescamos la página la sesión no se pierda.
+
+### login()
+
+- 1. Nos pide por parámetro de entrada un DTO que definimos en la nuestra interfaz `auth.interface.ts` y contiene exactamente lo que el servidor espera recibir.
+- 2. La petición `this.http.post<AuthResponse>(...)` define que vamos a hacer un POST y que cuando el servidor responda, los datos tendrán la forma de la interfaz `AuthResponse`. Hasta este punto tenemos un 'Cold Observable' es decir, tenemos los datos para recibir la información pero aún no hemos hecho nada.
+- 3. `.pipe()`: Es un método de los Observables. Es una tubería donde conectamos diferentes operadores para procesar los datos que lleguen. Estamos diciendo que cuando alguien haga .`subscribe()` del observable, quiero que los datos pasen por ciertos procesos (guardar el token en el localStorage).
+- 4. `.tap()`: Mira los datos pero no los toca ni los modifica. Anota el token y lo guarda.
+- 5. `response`: Es el payload que nos envia Spring Boot, contiene el JSON con el token, email, nombre, id, rol...
+
+Una vez terminado este proceso tendremos en el localStorage el `token`, el `currentUser` además de como variable signal también tendremos `currentUser`
+
+```typescript
+// Enviamos email y password al backend - LoginRequest (Interfaz que representa un DTO)
+  login(credentials: LoginRequest): Observable<AuthResponse> {
+    return (
+      this.http
+        // Hacemos un método post, al servidor nuestras credenciales (LoginRequest). Se nos devolveran datos que serán mapeados en la interfaz AuthResponse
+        .post<AuthResponse>(`${this.apiUrl}/auth/login`, credentials)
+        // Hasta este punto, tenemos lo que se llama un 'Cold Observable' Tenemos los datos necesarios para recibir la información pero aun no hemos hecho nada.
+
+        //.pipe() es un método de los observables una tuberia que conectamos esperando para procesar los datos que lleguen cuando hagamos .subscribe()
+        .pipe(
+          // .tap(response) es un método de .pipe() que nos permite ver los datos sin modificarlos. 'response' es el objeto que representa en JSON la respuesta del servidor
+          // basicamente hay en formato JSON el 'AuthResponse' de Java (id, token, email, nombre, rol y mensaje)
+          tap((response) => {
+            // AQUÍ es donde el token entra al localStorage
+            localStorage.setItem('token', response.token);
+
+            // Guardamos el objeto entero en la variable signal currentUser
+            localStorage.setItem('currentUser', JSON.stringify(response));
+
+            // currentUser que era null, pasa a tener los datos del usuario.
+            this.currentUser.set(response);
+
+            // Una vez realizado todo, tendremos en el localStorage dos items token y currentUser(con todos los datos id, token...) y el signal como currentUser también.
+          }),
+        )
+    );
+  }
+```
+
+### ¿Qué es un Observable?
+
+Podriamos hacer la analogía de que un Observable es la tuberia que se conecta al servidor. Hasta que no abrimos el grifo (hacer `.subscribe()`), no habrá flujo de datos por lo que está siempre listo para ser suscrito.
+
+- También tiene otras funcionalidades como `.pipe()` donde podemos procesar los datos que nos llegan con otros métodos del mismo como `.tap()`.
+
+**`.subscribe()` es el trigger de todo, hasta que no hagamos login.subscribe() nada sucedera, el observable estará esperando a que lo llamemos.**
+
+### register
+Es un método realmenta parecido a login por lo que no es necesaria la explicación.
+
+## 3. auth.interceptor.ts
+Es una función silenciosa que actua como puente entre Angular y el backend.
+
+### Funcion:
+Intercepta cada petición HTTP saliente e inyecta automaticamente el token JWT en las cabeceras.
+
+**Esto es de vital importancia porque si no el backend recibiría una petición anónima, el backend (`JwtAuthenticationFilter`) buscaría el header y al no encontrarlo devolveria una respuesta 403 o 401**
