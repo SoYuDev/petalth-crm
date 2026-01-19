@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+// Gestiona la lógica para acceso y creación de usuarios.
 public class AuthService {
     private final UserRepository userRepository;
     private final OwnerRepository ownerRepository;
@@ -34,14 +35,15 @@ public class AuthService {
                 )
         );
 
-        // 2. Buscar al usuario en BD
+        // 2. Una vez Spring nos dice que el usuario es real, buscamos al usuario en la BDD
+        // Para más adelante devolver un DTO con la respuesta del servidor.
         User user = userRepository.findByEmail(loginRequest.email())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // 4. Generar token JWT
+        // 3. Generar token JWT
         String token = jwtService.generateToken(user);
 
-        // 5. Devolver respuesta
+        // 4. Devolver respuesta
         return new AuthResponse(
                 user.getId(),
                 token,

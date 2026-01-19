@@ -2,7 +2,7 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { PetService } from './pet.service';
 import { Pet } from './pet';
 import { ActivatedRoute, Router } from '@angular/router';
-import { AuthService } from '../../service/auth.service';
+import { AuthService } from '../../security/service/auth.service';
 
 @Component({
   selector: 'app-pet',

@@ -4,7 +4,7 @@ import { VeterinarianComponent } from './components/veterinarian/veterinarian.co
 import { AppointmentComponent } from './components/appointment/appointment.component';
 import { HomeComponent } from './components/home/home.component';
 import { LoginComponent } from './components/login/login.component';
-import { authGuard } from './guards/auth.guard';
+import { authGuard } from './security/guards/auth.guard';
 import { RegisterComponent } from './components/register/register.component';
 
 export const routes: Routes = [

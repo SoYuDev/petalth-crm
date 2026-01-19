@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
-import { AuthService } from '../../service/auth.service';
+import { AuthService } from '../../security/service/auth.service';
 import { UpperCasePipe } from '@angular/common';
 
 

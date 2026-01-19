@@ -6,7 +6,7 @@ import {
   LoginRequest,
   RegisterRequest,
   Role,
-} from '../components/login/auth.interfaces';
+} from '../auth.interfaces';
 
 @Injectable({
   providedIn: 'root',
