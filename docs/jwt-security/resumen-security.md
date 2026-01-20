@@ -585,12 +585,50 @@ Podriamos hacer la analogía de que un Observable es la tuberia que se conecta a
 **`.subscribe()` es el trigger de todo, hasta que no hagamos login.subscribe() nada sucedera, el observable estará esperando a que lo llamemos.**
 
 ### register
+
 Es un método realmenta parecido a login por lo que no es necesaria la explicación.
 
 ## 3. auth.interceptor.ts
-Es una función silenciosa que actua como puente entre Angular y el backend.
+
+Es una **función** silenciosa que actua como puente entre Angular y el backend. **Es importante aclarar que no es una clase.**
 
 ### Funcion:
+
 Intercepta cada petición HTTP saliente e inyecta automaticamente el token JWT en las cabeceras.
 
 **Esto es de vital importancia porque si no el backend recibiría una petición anónima, el backend (`JwtAuthenticationFilter`) buscaría el header y al no encontrarlo devolveria una respuesta 403 o 401**
+
+Al decirle que la función es un `HttpIncerceptorFn`, Angular te obliga a cumplir dos parámetros:
+
+- 1. `req` (HttpRequest) La petición (URL, método HTTP, cuerpo...)
+- 2. `next` (HttpHandlerFn) El puente hacia el siguiente paso.
+
+### Caso de uso:
+
+- 1. Cuando hacemos `this.http.get('/api/pets')`, `authInterceptor` actua.
+- 2. Comprueba el `localStorage`. ¿Hay Token?
+- 3. Como no podemos abrir la petición original ya que es inmutable hacemos una copia exacta con `req.clone` y le pegamos la etiqueta `Authorization`.
+- 4. Si llamamos a `next(cloned)`, le pasamos la copia con el token al servidor
+
+**Esta clase es de vital importancia ya que nos permite comunicarnos con el backend ya que este nos pide que en el header `Authorization` tengamos el valor 'Bearer + token'**
+
+```typescript
+// El interceptor revisa cada petición HTTP y si detecta un Token, copia la request y establece como headers `Bearer + tokenJWT`
+export const authInterceptor: HttpInterceptorFn = (req, next) => {
+  const token = localStorage.getItem("token"); // Recuperamos el token guardado
+
+  // Si el token existe, clonamos la petición y le añadimos el header.
+  if (token) {
+    // Parte clave, clonamos la peticion HTTP y ponemos lo necesario para que el backend acepte la peticion (Poner en el header Authorization: `Bearer + token`)
+    const cloned = req.clone({
+      setHeaders: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return next(cloned);
+  }
+
+  // Si no hay token (ej: en el login), la petición sigue normal (rutas publicas)
+  return next(req);
+};
+```
