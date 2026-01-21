@@ -252,17 +252,20 @@ Antes de comprobar si tienes un token válido, el servidor donde vive el cliente
 Todo esto está implementado en el Bean **`CorsConfigurationSource`**, dentro de SecurityConfig.
 
 ```java
-    // Configuración CORS de a quién permitimos entrar
+        // Configuración CORS de a quién permitimos entrar
     // CORS nos permite decirle al filtro del navegador qué peticiones HTTP puede hacer.
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
+        // Definimos las reglas de configuración del CORS.
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of("http://localhost:4200")); // Permitir Angular
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         configuration.setAllowCredentials(true);
 
+        // Aplicamos las reglas previamente definidas.
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        // La configuración aplica para todas las rutas.
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
@@ -580,11 +583,13 @@ Una vez terminado este proceso tendremos en el localStorage el `token`, el `curr
 
 Podriamos hacer la analogía de que un Observable es la tuberia que se conecta al servidor. Hasta que no abrimos el grifo (hacer `.subscribe()`), no habrá flujo de datos por lo que está siempre listo para ser suscrito.
 
+Cada vez que llamamos a un Observable se crea uno nuevo y diferente.
+
 - También tiene otras funcionalidades como `.pipe()` donde podemos procesar los datos que nos llegan con otros métodos del mismo como `.tap()`.
 
 **`.subscribe()` es el trigger de todo, hasta que no hagamos login.subscribe() nada sucedera, el observable estará esperando a que lo llamemos.**
 
-### register
+### register()
 
 Es un método realmenta parecido a login por lo que no es necesaria la explicación.
 
@@ -632,3 +637,348 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   return next(req);
 };
 ```
+
+## 4. auth.guard.ts
+
+Es el encargado de decidir si un usuario tiene permiso para ver una pantalla o debe de ser redirigido a otra vista.
+
+### Funcion:
+
+Protege rutas del navegador verificando la existencia de una sesión.
+
+- Si intentamos entrar a `/pets/5` pero tu ID del usuario es 3 y no eres ADMIN el guard te bloquea y te redirige a tu propia página.
+
+```typescript
+import { inject } from "@angular/core";
+import { CanActivateFn, Router } from "@angular/router";
+import { AuthService } from "../service/auth.service";
+import { Role } from "../auth.interfaces";
+
+// Archivo que se encarga de verificar las reglas de seguridad antes de entrar a la ruta
+export const authGuard: CanActivateFn = (route, state) => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
+
+  // 1. ¿Está logueado?
+  if (!authService.isLoggedIn() || !authService.currentUser()) {
+    // Si no, fuera (al login)
+    return router.createUrlTree(["/login"]);
+  }
+
+  const currentUser = authService.currentUser();
+  const routeId = route.paramMap.get("ownerId"); // El ID de la URL (/pets/5)
+
+  // 2. Si la ruta tiene un ID (/pets/5) y NO somos ADMIN...
+  if (routeId) {
+    const idEnUrl = Number(routeId);
+    // Si no hay valor de id, devuelve undefined en vez de null. Util para evitar errores.
+    const miId = currentUser?.id;
+
+    // Si intento entrar en un ID que no es el mío
+    if (miId !== idEnUrl && currentUser?.rol !== Role.ADMIN) {
+      console.warn(
+        "Intento de acceso no autorizado. Redirigiendo a tu perfil.",
+      );
+      // Te redirijo a TU propia página de mascotas
+      return router.createUrlTree(["/pets", miId]);
+    }
+  }
+
+  // Si pasas todas las pruebas, adelante
+  return true;
+};
+```
+
+### Configuración de app.routes.ts para su uso
+
+Como vemos en el siguiente código podemos definir que rutas son las que sean comprobadas por el guard.
+
+**Cada vez que intentemos acceder a una ruta marcada con un guard el código se ejecutará.**
+
+```typescript
+export const routes: Routes = [
+  { path: '', component: HomeComponent },
+  { path: 'login', component: LoginComponent },
+  { path: 'register', component: RegisterComponent },
+
+  // Rutas protegidas con authGuard
+  { path: 'pets', component: PetComponent, canActivate: [authGuard] },
+  // Uso de parámetros dinámicos
+  { path: 'pets/:ownerId', component: PetComponent, canActivate: [authGuard] },
+
+  { path: 'veterinarians', component: VeterinarianComponent },
+```
+
+## 5. LoginComponent
+
+Es la interfaz que finalmente interactua con el usuario final
+
+### Funcion:
+
+Componente que gestiona el formulario reactivo de entrada, valida los datos en tiempo real y maneja las respuestas de error con el servidor.
+
+- `ReactiveFormsModule` es un módulo de Angular que nos permite crear formularios de manera robusta. El objeto `loginForm` vigila que el email sea válido y la contraseña tenga una longitud mínima.
+- Si hay error en el Backend, ya sea por credenciales incorrectas o error del servidor se envía un signal llamado `errorMessage`.
+
+### Archivo .ts del componente
+
+```typescript
+@Component({
+  selector: "app-login",
+  standalone: true,
+  imports: [ReactiveFormsModule, CommonModule, RouterLink], // Importante importar ReactiveFormsModule
+  templateUrl: "./login.component.html",
+  styleUrl: "./login.component.css",
+})
+export class LoginComponent {
+  private fb = inject(FormBuilder);
+  private authService = inject(AuthService);
+  private router = inject(Router);
+
+  // Signal para mensajes de error
+  errorMessage = signal<string>("");
+
+  // loginForm es un objeto de tipo FormGroup, contiene los inputs y vigila lo que el usuario escribe.
+  // Esta variable se mantiene sincronizada con el HTML mediante [formGroup]="loginForm"
+  loginForm = this.fb.group({
+    email: ["", [Validators.required, Validators.email]],
+    password: ["", [Validators.required, Validators.minLength(4)]],
+  });
+
+  // Comprueba que loginForm es válido.
+  onSubmit() {
+    if (this.loginForm.invalid) {
+      return;
+    }
+
+    // Extraemos los valores del formulario que había en loginForm
+    const credentials: LoginRequest = {
+      // ?? -> Operador de fusión nula. Si this.loginForm.value.email es null, cogerá el valor de la derecha, en este caso un string vacío.
+      email: this.loginForm.value.email ?? "",
+      password: this.loginForm.value.password ?? "",
+    };
+
+    // Llamamos al servicio suscribiendonos al observable
+    this.authService.login(credentials).subscribe({
+      next: () => {
+        // Si todo sale bien, redirigimos a la home (Spring Boot manda un 200 OK)
+        this.router.navigate(["/"]);
+      },
+      // Si hay un error (Spring Boot manda 401 o 403)
+      error: (err) => {
+        console.error("Error en login:", err);
+        this.errorMessage.set(
+          "Credenciales incorrectas o fallo del servidor. Inténtalo de nuevo.",
+        );
+      },
+    });
+  }
+}
+```
+
+### Archivo .html del componente
+
+```html
+<div class="container d-flex justify-content-center align-items-center vh-100">
+  <div class="card p-4 shadow-sm" style="max-width: 400px; width: 100%;">
+    <div class="card-body">
+      <h3 class="card-title text-center mb-4">Iniciar Sesión</h3>
+
+      <!--       
+      1. Conectamos el formulario [formGroup] conecta HTML con loginForm, que hace referencia a la variable del .ts
+      2. (ngSubmit)="onSubmit()" al enviar el formulario (pulsar boton con type submit) llamamos al método onSubmit
+      -->
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+        <div class="mb-3">
+          <label for="email" class="form-label">Email</label>
+          <!--
+          Class Binding: class.NOMBRE_CLASE="CONDICION" -> class.is-invalid es una clase de Bootstrap
+          En este caso: El email incumple alguna regla y el usuario ha tocado este campo (si no saldría directamente rojo antes de que lo toque)?
+          -->
+          <input
+            type="email"
+            class="form-control"
+            id="email"
+            formControlName="email"
+            placeholder="user@petalth.com"
+            [class.is-invalid]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
+          />
+
+          <!-- Si el input email tiene algún error y ha sido previamente tocado... -->
+          @if (loginForm.get('email')?.hasError('email') &&
+          loginForm.get('email')?.touched) {
+          <!-- Solo se muestra si el input hermano es invalido-->
+          <div class="invalid-feedback">Introduce un email válido.</div>
+          }
+        </div>
+
+        <div class="mb-3">
+          <label for="password" class="form-label">Contraseña</label>
+          <input
+            type="password"
+            class="form-control"
+            id="password"
+            formControlName="password"
+            placeholder="******"
+          />
+        </div>
+
+        <!--         
+        1. Al principio signal está vaciío : '' lo que implica que errorMessage() es false
+        2. Si hacemos mal el login el backend devuelve error y el servicio hace .set('Credenciales Malas')
+        3. Se muestra el mensaje de error
+        -->
+        @if (errorMessage()) {
+        <div class="alert alert-danger text-center" role="alert">
+          {{ errorMessage() }}
+        </div>
+        }
+
+        <div class="d-grid gap-2">
+          <!-- Controlamos el atributo disabled del HTML. Si loginForm.invalid se deshabilita, ejemplo de Property Binding -->
+          <button
+            type="submit"
+            class="btn btn-primary"
+            [disabled]="loginForm.invalid"
+          >
+            Entrar
+          </button>
+        </div>
+      </form>
+
+      <div class="mt-3 text-center">
+        <small class="text-muted"
+          >¿No tienes cuenta? <a routerLink="/register">Regístrate</a></small
+        >
+      </div>
+    </div>
+  </div>
+</div>
+```
+
+# Caso de Uso Completo: Del Login a la Petición Protegida
+
+Este flujo describe cómo el usuario "Luis" inicia sesión y consulta sus mascotas, destacando la interacción detallada entre Angular (Frontend) y Spring Security (Backend).
+
+## 1. El Proceso de Login (Obtención del Token)
+
+**Objetivo:**  
+Autenticar las credenciales del usuario y obtener su JWT.
+
+### 1. Frontend: El Disparo (Angular)
+
+- Luis introduce su email y contraseña.
+- El `LoginComponent` llama al método `login()` del servicio de autenticación.
+- **Acción:**  
+  Se ejecuta `.subscribe()`, que dispara una petición HTTP **POST** a  
+  `http://localhost:8080/auth/login`
+- **Estado de la Petición:**
+  - El cuerpo contiene el JSON `{email, password}`.
+  - **No lleva cabecera `Authorization`** (el `auth.interceptor.ts` la ignora porque aún no hay token en `localStorage`).
+
+### 2. Backend: La Intercepción (JwtAuthenticationFilter)
+
+- La petición llega al servidor.
+- `JwtAuthenticationFilter` intercepta todas las peticiones entrantes, incluida esta.
+- **Análisis:**  
+  El filtro inspecciona el Header `Authorization`.
+- **Detección:**
+  - Al ser una petición de login, el header es `null`.
+- **Decisión Técnica:**  
+  El filtro ejecuta su lógica de "paso":
+
+  ```java
+  if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+      // No bloquea, pasa la responsabilidad al siguiente filtro
+      filterChain.doFilter(request, response);
+      return;
+  }
+  ```
+
+- **Resultado:**  
+  El filtro de `JwtAuthenticationFilter` **ignora la petición y la deja pasar** tal cual.
+
+### 3. Backend: La Autorización (SecurityConfig)
+
+- La petición llega al núcleo de seguridad de Spring.
+- Como el filtro JWT anterior no autenticó al usuario, la petición sigue siendo **Anónima**.
+- **Regla:**  
+  Spring consulta la configuración de seguridad en `SecurityConfig`.
+- **Coincidencia:**
+  - La URL `/auth/login` coincide con `.requestMatchers("/auth/**").permitAll()`
+- **Acción:**  
+  Spring permite el acceso al recurso aunque el usuario sea anónimo.
+
+### 4. Backend: Generación del Token (Business Logic)
+
+- La petición llega finalmente a `AuthController` -> `AuthService`.
+- `AuthenticationManager`, dentro de `AuthService` valida las credenciales contra la base de datos.
+- `JwtService` firma el token.
+- **Respuesta:**  
+  El backend responde con **200 OK** y un objeto `AuthResponse` (que contiene el Token JWT).
+
+### 5. Frontend: Almacenamiento (El operador .tap())
+
+- De vuelta en Angular, antes de que el componente tome el control, el operador `.tap()` del `AuthService` captura la respuesta:
+  - Guarda el token en `localStorage`.
+  - Actualiza el Signal `currentUser`.
+
+---
+
+# PARTE 2: La Petición Protegida (Consultando Mascotas)
+
+Una vez autenticado, "Luis" quiere consultar sus mascotas, lo que desencadena una petición protegida y toda la maquinaria de autenticación/validación de JWT.
+
+## 1. Frontend: El Blindaje (AuthInterceptor)
+
+- Luis hace clic en "Mis Mascotas".
+- Angular intenta realizar un **GET** a `/api/pets`.
+- Antes de salir del navegador, la petición **es detenida por el `authInterceptor`**.
+- **Verificación:**  
+  El interceptor revisa el `localStorage` y encuentra el token JWT guardado previamente.
+- **Clonación:**  
+  La petición HTTP es inmutable, por lo que el interceptor crea un **clon exacto**.
+- **Inyección del Token:**  
+  El token se adjunta en la cabecera del clon:
+  ```
+  Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
+  ```
+- **Envío:**  
+  La petición clonada (ahora protegida) se envía al backend.
+
+## 2. Backend: La Validación (JwtAuthenticationFilter)
+
+- La petición llega al backend y el `JwtAuthenticationFilter` la intercepta de nuevo.
+- **Análisis:**  
+  Inspecciona el header `Authorization`.
+- **Detección:**  
+  Esta vez SÍ encuentra el prefijo `Bearer `.
+- **Procesamiento:**
+  - Extrae el **token puro** (`substring(7)` para eliminar el prefijo).
+  - Llama a `JwtService` para **validar la firma y comprobar la caducidad**.
+  - Extrae el **email** (ejemplo: `luis@mail.com`).
+  - Carga los detalles del usuario desde la base de datos.
+  - **Autenticación en Contexto:**  
+    Crea un objeto `UsernamePasswordAuthenticationToken` (el "DNI" de Java para el usuario autenticado) y lo inserta en el `SecurityContextHolder`.
+- **Diferencia clave:**  
+  Ahora la petición **ya no es anónima**: tiene una identidad oficial en el contexto de Spring Security.
+
+## 3. Backend: La Autorización Final (SecurityConfig)
+
+- La petición se dirige a `SecurityConfig` para verificar el acceso.
+- **Regla:**  
+  Spring revisa las configuraciones para `/api/pets`.
+- **Coincidencia:**  
+  La ruta coincide con `.anyRequest().authenticated()`.
+- **Verificación:**  
+  Spring examina el `SecurityContext`: **¿Hay usuario autenticado? Sí** (insertado por el filtro JWT).
+- **Acción:**  
+  **Semáforo verde:** La petición es autorizada y continúa su camino.
+
+## 4. Backend: Respuesta de Datos
+
+- El `PetController` recibe la petición.
+- Consulta las mascotas de Luis en la base de datos.
+- Devuelve el JSON con la información de las mascotas solicitadas.
+
+## 5. Frontend: Se pintan los objeto para que el cliente lo vea.

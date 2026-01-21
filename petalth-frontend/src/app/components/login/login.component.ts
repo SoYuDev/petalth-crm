@@ -35,6 +35,7 @@ export class LoginComponent {
 
     // Extraemos los valores del formulario que había en loginForm
     const credentials: LoginRequest = {
+      // ?? -> Operador de fusión nula. Si this.loginForm.value.email es null, cogerá el valor de la derecha, en este caso un string vacío.
       email: this.loginForm.value.email ?? '',
       password: this.loginForm.value.password ?? '',
     };
@@ -48,7 +49,9 @@ export class LoginComponent {
       // Si hay un error (Spring Boot manda 401 o 403)
       error: (err) => {
         console.error('Error en login:', err);
-        this.errorMessage.set('Credenciales incorrectas o fallo del servidor. Inténtalo de nuevo.');
+        this.errorMessage.set(
+          'Credenciales incorrectas o fallo del servidor. Inténtalo de nuevo.',
+        );
       },
     });
   }

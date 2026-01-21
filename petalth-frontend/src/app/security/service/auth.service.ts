@@ -25,9 +25,9 @@ export class AuthService {
       this.http
         // Hacemos un método post, al servidor nuestras credenciales (LoginRequest). Se nos devolveran datos que serán mapeados en la interfaz AuthResponse
         .post<AuthResponse>(`${this.apiUrl}/auth/login`, credentials)
-        // Hasta este punto, tenemos lo que se llama un 'Cold Observable' Tenemos los datos necesarios para recibir la información pero aun no hemos hecho nada.
+        // Hasta este punto, tenemos lo que se llama un 'Cold Observable' Tenemos los datos o configuración necesaria para recibir la información pero aun no hemos hecho nada.
 
-        //.pipe() es un método de los observables una tuberia que conectamos esperando para procesar los datos que lleguen cuando hagamos .subscribe()
+        //.pipe() es un método de los observables, una tuberia que conectamos esperando para procesar los datos que lleguen cuando hagamos .subscribe()
         .pipe(
           // .tap(response) es un método de .pipe() que nos permite ver los datos sin modificarlos. 'response' es el objeto que representa en JSON la respuesta del servidor
           // basicamente hay en formato JSON el 'AuthResponse' de Java (id, token, email, nombre, rol y mensaje)

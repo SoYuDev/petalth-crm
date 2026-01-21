@@ -20,6 +20,7 @@ export const authGuard: CanActivateFn = (route, state) => {
   // 2. Si la ruta tiene un ID (/pets/5) y NO somos ADMIN...
   if (routeId) {
     const idEnUrl = Number(routeId);
+    // Si no hay valor de id, devuelve undefined en vez de null. Util para evitar errores.
     const miId = currentUser?.id;
 
     // Si intento entrar en un ID que no es el mío
