@@ -1,6 +1,6 @@
 <nav class="navbar navbar-expand-lg bg-body-tertiary sticky-top">
   <div class="container">
-    <a class="navbar-brand" href="#">
+    <a class="navbar-brand" href="/">
       <img src="../../../assets/media/petalth-logo.png" alt="Petalth Logo" class="navbar-logo">
     </a>
 
@@ -12,21 +12,53 @@
 
     <!-- Menú, collapse define que estos elementos no se muestren en móviles -->
     <div class="collapse navbar-collapse mt-2 fontfix" id="navbarNav">
+
       <!-- Menú del centro -->
       <ul class="navbar-nav mx-auto fs-5 gap-4">
+        <!-- Si no estamos logueados... -->
+        @if (!authService.currentUser()) {
         <li class="nav-item">
-          <a class="nav-link" routerLink="/pets/6" routerLinkActive="active">Mascotas</a>
+          <!-- [routerLinkActiveOptions]="{exact: true}" especifica que unicamente haga routerLinkActive si la url es '/' -->
+          <a class="nav-link" routerLink="/" routerLinkActive="active"
+            [routerLinkActiveOptions]="{exact: true}">Inicio</a>
         </li>
         <li class="nav-item">
           <a class="nav-link" routerLink="/veterinarians" routerLinkActive="active">Veterinarios</a>
         </li>
+        }
+        <!-- Si estamos logueados... -->
+        @if (authService.currentUser()) {
+        <!-- Si somos usuarios... -->
+        @if (authService.isUser()) {
         <li class="nav-item">
-          <a class="nav-link" routerLink="/appointments" routerLinkActive="active">Citas</a>
+          <a class="nav-link" [routerLink]="['/pets', authService.currentUser()?.id]" routerLinkActive="active">
+            Mis Mascotas
+          </a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/appointments/new" routerLinkActive="active">Pedir Cita</a>
+        </li>
+        }
+
+        <!-- Si somos veterinarios... -->
+        @if (authService.isVet()) {
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/appointments" routerLinkActive="active">Mi Agenda</a>
+        </li>
+        }
+
+        <!-- Si somos Administradores...-->
+        @if (authService.isAdmin()) {
+        <li class="nav-item">
+          <a class="nav-link text-danger" routerLink="/admin/users" routerLinkActive="active">Usuarios</a>
+        </li>
+        }
+        }
       </ul>
       <!-- Menú de la derecha -->
       <ul class="navbar-nav">
         <!-- Dropdown para pantallas grandes (lg y superior) -->
+        @if (!authService.currentUser()) {
         <li class="nav-item dropdown d-none d-lg-block">
           <button class="btn btn-primary btn" type="button" data-bs-toggle="dropdown" aria-expanded="false">
             Acceso a la app
@@ -46,7 +78,8 @@
                 <div class="text-left">
                   <h6 class="mb-3">¿Primera vez aquí?</h6>
                   <p>¡Registrate gratis y empieza a disfrutar de todos los servicios!</p>
-                  <a class="btn btn-outline-primary w-100">Regístrate</a>
+                  <a class="btn btn-outline-primary w-100" routerLink="/register"
+                    routerLinkActive="active">Regístrate</a>
                 </div>
               </div>
             </div>
@@ -57,8 +90,46 @@
           <a class="nav-link" routerLink="/login" routerLinkActive="active">Inicia Sesión</a>
         </li>
         <li class="nav-item d-lg-none">
-          <a class="nav-link" href="#">Regístrate</a>
+          <a class="nav-link" routerLink="/register" routerLinkActive="active">Regístrate</a>
         </li>
+        }
+        @else {
+
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" role="button"
+            data-bs-toggle="dropdown" aria-expanded="false">
+
+            <!-- Obtenemos la primera letra del usuario o del correo, hacemos uppercase con pipe para que salga un circulito con el usuario-->
+            <div class="rounded-circle bg-primary text-white d-flex justify-content-center align-items-center"
+              style="width: 35px; height: 35px; font-weight: bold;">
+              {{ (authService.currentUser()?.nombre?.charAt(0) || authService.currentUser()?.email?.charAt(0)) |
+              uppercase }}
+            </div>
+
+            <span class="fw-bold text-dark">
+              Hola, {{ authService.currentUser()?.nombre}}
+            </span>
+          </a>
+
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li>
+              <h6 class="dropdown-header">Mi Cuenta</h6>
+            </li>
+            <li><a class="dropdown-item" routerLink="/profile">Mi Perfil</a></li>
+            <li>
+              <hr class="dropdown-divider">
+            </li>
+            <li>
+              <button class="dropdown-item text-danger" (click)="logout()">
+                Cerrar Sesión
+              </button>
+            </li>
+          </ul>
+        </li>
+
+        }
+
+
       </ul>
     </div>
   </div>

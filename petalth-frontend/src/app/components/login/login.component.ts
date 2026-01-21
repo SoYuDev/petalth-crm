@@ -1,8 +1,9 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { AuthService } from '../../../app/service/auth.service';
+import { AuthService } from '../../security/service/auth.service';
 import { CommonModule } from '@angular/common';
+import { LoginRequest } from '../../security/auth.interfaces';
 
 @Component({
   selector: 'app-login',
@@ -33,7 +34,8 @@ export class LoginComponent {
     }
 
     // Extraemos los valores del formulario que había en loginForm
-    const credentials = {
+    const credentials: LoginRequest = {
+      // ?? -> Operador de fusión nula. Si this.loginForm.value.email es null, cogerá el valor de la derecha, en este caso un string vacío.
       email: this.loginForm.value.email ?? '',
       password: this.loginForm.value.password ?? '',
     };
@@ -47,7 +49,9 @@ export class LoginComponent {
       // Si hay un error (Spring Boot manda 401 o 403)
       error: (err) => {
         console.error('Error en login:', err);
-        this.errorMessage.set('Credenciales incorrectas. Inténtalo de nuevo.');
+        this.errorMessage.set(
+          'Credenciales incorrectas o fallo del servidor. Inténtalo de nuevo.',
+        );
       },
     });
   }

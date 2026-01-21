@@ -35,7 +35,7 @@
         </div>
 
         <!--         
-        1. Al principio signal está vaciío : ''
+        1. Al principio signal está vaciío : '' lo que implica que errorMessage() es false
         2. Si hacemos mal el login el backend devuelve error y el servicio hace .set('Credenciales Malas')
         3. Se muestra el mensaje de error
         -->
@@ -46,7 +46,7 @@
         }
 
         <div class="d-grid gap-2">
-          <!-- Controlamos el atributo disabled del HTML. Si loginForm.invalid se deshabilita -->
+          <!-- Controlamos el atributo disabled del HTML. Si loginForm.invalid se deshabilita, ejemplo de Property Binding -->
           <button type="submit" class="btn btn-primary" [disabled]="loginForm.invalid">
             Entrar
           </button>

@@ -44,6 +44,10 @@ Centraliza la comunicación con el endpoint de seguridad.
 import { HttpClient } from "@angular/common/http";
 import { inject, Injectable, signal } from "@angular/core";
 import { tap } from "rxjs";
+import {
+  AuthResponse,
+  LoginRequest,
+} from "../components/login/auth.interfaces";
 
 @Injectable({
   providedIn: "root",
@@ -52,26 +56,43 @@ export class AuthService {
   private http = inject(HttpClient);
   private apiUrl = "http://localhost:8080/auth";
 
-  // Usamos un signal para que la app sepa en tiempo real si hay usuario
-  currentUser = signal<any>(null);
+  // Usamos un signal para que la app sepa en tiempo real si hay usuario, esta puede ser AuthResponse (Interfaz para DTO) o null.
+  currentUser = signal<AuthResponse | null>(null);
 
-  // Enviamos email y password al backend
-  login(credentials: { email: string; password: string }) {
+  // Enviamos email y password al backend - LoginRequest (Interfaz para DTO)
+  login(credentials: LoginRequest) {
     return this.http.post<any>(`${this.apiUrl}/login`, credentials).pipe(
       // Guarda el String del token en el local storage.
       tap((response) => {
         // AQUÍ es donde el token entra al localStorage
         localStorage.setItem("token", response.token);
+
+        // Guardamos el objeto entero en la variable signal currentUser
+        localStorage.setItem("currentUser", JSON.stringify(response));
+
         // currentUser que era null, pasa a tener los datos del usuario.
         this.currentUser.set(response);
-      })
+      }),
     );
   }
 
   // Borra el token del local storage y ponemos la señal a null para que la UI sepa que no hay nadie logueado.
   logout() {
     localStorage.removeItem("token");
+    localStorage.removeItem("currentUser");
     this.currentUser.set(null);
+  }
+
+  // Obtenemos el rol
+  getRole(): string {
+    const userStr = localStorage.getItem("currentUser");
+    if (userStr) {
+      // Parseamos y forzamos el tipo para que TS sepa qué es
+      const user = JSON.parse(userStr) as AuthResponse;
+      // Devolvemos unicamente el rol como String
+      return user.rol;
+    }
+    return "";
   }
 
   // Si el token existe en el almacenamiento, devuelve true si no existe(null) devuelve false.
@@ -114,6 +135,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
 import { Router, RouterLink } from "@angular/router";
 import { AuthService } from "../../../app/service/auth.service";
 import { CommonModule } from "@angular/common";
+import { LoginRequest } from "./auth.interfaces";
 
 @Component({
   selector: "app-login",
@@ -144,7 +166,7 @@ export class LoginComponent {
     }
 
     // Extraemos los valores del formulario que había en loginForm
-    const credentials = {
+    const credentials: LoginRequest = {
       email: this.loginForm.value.email ?? "",
       password: this.loginForm.value.password ?? "",
     };
@@ -167,7 +189,7 @@ export class LoginComponent {
 
 ### login HTML
 
-````html
+```html
 <div class="container d-flex justify-content-center align-items-center vh-100">
   <div class="card p-4 shadow-sm" style="max-width: 400px; width: 100%;">
     <div class="card-body">
@@ -244,4 +266,46 @@ export class LoginComponent {
   </div>
 </div>
 ```
-````
+
+## 4. Authguard
+
+Archivo que se encarga de verificar las reglas de seguridad antes de entrar a la ruta
+
+```typescript
+import { inject } from "@angular/core";
+import { CanActivateFn, Router } from "@angular/router";
+import { AuthService } from "../service/auth.service";
+import { Role } from "../components/login/auth.interfaces";
+
+export const authGuard: CanActivateFn = (route, state) => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
+
+  // 1. ¿Está logueado?
+  if (!authService.isLoggedIn() || !authService.currentUser()) {
+    // Si no, fuera (al login)
+    return router.createUrlTree(["/login"]);
+  }
+
+  const currentUser = authService.currentUser();
+  const routeId = route.paramMap.get("ownerId"); // El ID de la URL (/pets/5)
+
+  // 2. Si la ruta tiene un ID (/pets/5) y NO somos ADMIN...
+  if (routeId) {
+    const idEnUrl = Number(routeId);
+    const miId = currentUser?.id;
+
+    // Si intento entrar en un ID que no es el mío
+    if (miId !== idEnUrl && currentUser?.rol !== Role.ADMIN) {
+      console.warn(
+        "Intento de acceso no autorizado. Redirigiendo a tu perfil.",
+      );
+      // Te redirijo a TU propia página de mascotas
+      return router.createUrlTree(["/pets", miId]);
+    }
+  }
+
+  // Si pasas todas las pruebas, adelante
+  return true;
+};
+```

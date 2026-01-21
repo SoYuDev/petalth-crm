@@ -27,12 +27,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(@NonNull HttpServletRequest request,
                                     @NonNull HttpServletResponse response,
                                     @NonNull FilterChain filterChain) throws ServletException, IOException {
-        // 1. Obtener el header "Authorization"
+
+        // 1. Obtener el header "Authorization", común en todas las peticiones HTTP para seguridad.
+        // Si existe, el String será 'Bearer <JwtToken>'
         final String authHeader = request.getHeader("Authorization");
 
-        // 2. Si no hay header o no empieza con "Bearer ", dejamos pasar
+        // 2. Si no hay header o no empieza con "Bearer ", dejamos pasar a rutas públicas
         // IMPORTANTE: Esta verificación DEBE ir ANTES de hacer substring
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            // La petición sigue su curso en la cadena para que siga su curso a las rutas públicas.
             filterChain.doFilter(request, response);
             return;
         }
@@ -43,7 +46,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // 4. Extraer el email del token
         final String userEmail = jwtService.extractEmail(token);
 
-        // 5. Si hay email y el usuario NO está autenticado
+        // 5. Si hay email y el usuario NO está autenticado... vamos a intentar validarlo
         if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             // 6. Cargar el usuario desde la BD
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);

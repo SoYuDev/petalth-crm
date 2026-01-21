@@ -12,7 +12,7 @@ import java.util.Date;
 import java.util.Map;
 import java.util.function.Function;
 
-// Crea, lee y valida los tokens JWT
+// Crea, lee y valida los tokens JWT (Función de Criptógrafo)
 @Service
 public class JwtService {
 
@@ -24,7 +24,7 @@ public class JwtService {
     @Value("${jwt.expiration}")
     private long expiration;
 
-    // Genera un Token para un usuario
+    // Genera un Token básico a partir del usuario
     public String generateToken(UserDetails userDetails) {
         return generateToken(Map.of(), userDetails);
     }
@@ -40,7 +40,7 @@ public class JwtService {
                 .subject(userDetails.getUsername()) // El email del usuario
                 .issuedAt(new Date()) // Fecha de creación
                 .expiration(new Date(System.currentTimeMillis() + expiration)) // Fecha de expiración del Token
-                .signWith(getSigningKey())
+                .signWith(getSigningKey()) // Genera la firmal del JWT a partir de Headers, Claims o Payload y la clave 'secret'
                 .compact();
 
     }
@@ -85,6 +85,7 @@ public class JwtService {
      */
     public boolean isTokenValid(String token, UserDetails userDetails) {
         final String email = extractEmail(token);
+        // getUsername nos devuelve el email.
         return email.equals(userDetails.getUsername()) && !isTokenExpired(token);
     }
 

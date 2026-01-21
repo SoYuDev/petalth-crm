@@ -21,6 +21,7 @@ import java.util.List;
 
 @Configuration
 @RequiredArgsConstructor
+//Define la configuración global de seguridad y las reglas de acceso a las rutas.
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
@@ -42,7 +43,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // 4. JWT -> Sin estado (stateless)
                 )
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class) // 5. Añadimos nuestro filtro
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class) // 5. Añadimos nuestros filtros
                 .build();
     }
 
@@ -62,13 +63,16 @@ public class SecurityConfig {
     // CORS nos permite decirle al filtro del navegador qué peticiones HTTP puede hacer.
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
+        // Definimos las reglas de configuración del CORS.
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of("http://localhost:4200")); // Permitir Angular
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         configuration.setAllowCredentials(true);
 
+        // Aplicamos las reglas previamente definidas.
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        // La configuración aplica para todas las rutas.
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
