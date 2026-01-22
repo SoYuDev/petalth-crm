@@ -2,37 +2,51 @@ import { Component, inject } from '@angular/core';
 import { AuthService } from '../../security/service/auth.service';
 import { Router, RouterLink } from '@angular/router';
 import { RegisterRequest } from '../../security/auth.interfaces';
-import { FormsModule } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './register.component.html',
   styleUrl: './register.component.css',
 })
 export class RegisterComponent {
+  private fb = inject(FormBuilder);
   private authService = inject(AuthService);
   private router = inject(Router);
 
-  // Inicializar el objeto vacío para el formulario.
-  registerData: RegisterRequest = {
-    firstName: '',
-    lastName: '',
-    email: '',
-    password: '',
-    phone: '',
-    address: '',
-  };
-
   errorMessage: string = '';
 
+  // Creación de objeto tipo FormGroup para las validaciones
+  registerForm: FormGroup = this.fb.group({
+    firstName: ['', [Validators.required]],
+    lastName: ['', [Validators.required]],
+    email: ['', [Validators.required, Validators.email]],
+    phone: ['', [Validators.required, Validators.pattern('^[0-9]{9}$')]], // Ejemplo: solo números, 9 dígitos
+    address: ['', [Validators.required]],
+    password: ['', [Validators.required, Validators.minLength(6)]],
+  });
+
   onRegister() {
-    this.authService.register(this.registerData).subscribe({
+    // Si el formulario no es válido, detenemos la ejecución.
+    if (this.registerForm.invalid) {
+      this.registerForm.markAllAsTouched(); // Marca todos los campos como "tocados" para que salgan los errores en rojo.
+      return;
+    }
+
+    // Convertimos los valores del formulario a la interfaz RegisterRequest
+    // 'as RegisterRequest' fuerza el tipo, asegurándonos de que los datos coinciden.
+    const registerRequest = this.registerForm.getRawValue() as RegisterRequest;
+
+    this.authService.register(registerRequest).subscribe({
       next: (response) => {
         console.log('Registro exitoso', response);
-        // Al registrarse, el AuthService ya guardó el token en el Signal
-        // Redirigimos al usuario a sus mascotas usando su nuevo ID
         this.router.navigate(['/pets', response.id]);
       },
       error: (err) => {

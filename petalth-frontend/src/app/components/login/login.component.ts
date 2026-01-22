@@ -1,5 +1,10 @@
 import { Component, inject, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../security/service/auth.service';
 import { CommonModule } from '@angular/common';
@@ -22,7 +27,7 @@ export class LoginComponent {
 
   // loginForm es un objeto de tipo FormGroup, contiene los inputs y vigila lo que el usuario escribe.
   // Esta variable se mantiene sincronizada con el HTML mediante [formGroup]="loginForm"
-  loginForm = this.fb.group({
+  loginForm: FormGroup = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(4)]],
   });
