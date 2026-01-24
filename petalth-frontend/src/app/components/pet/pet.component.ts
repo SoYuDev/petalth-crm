@@ -71,4 +71,60 @@ export class PetComponent implements OnInit {
   }
 
   /* TODO - CRUD */
+
+  // --- LÓGICA DEL CRUD ---
+
+  toggleForm() {
+    this.showForm.update((value) => !value);
+  }
+
+  onSubmit() {
+    if (this.petForm.invalid || !this.currentOwnerId) return;
+
+    // Preparamos el objeto para enviar al backend
+    // Aquí mandamos el objeto plano y asumimos que el service lo gestiona.
+    const newPet: any = {
+      ...this.petForm.value,
+      owner: { id: this.currentOwnerId }, // Vinculamos al dueño actual
+    };
+
+    this.petService.createPet(newPet).subscribe({
+      next: (petCreada) => {
+        // Actualizamos la lista localmente añadiendo la nueva mascota
+        this.pets.update((currentPets) => [...currentPets, petCreada]);
+        this.toggleForm(); // Cerramos formulario
+        this.petForm.reset(); // Limpiamos campos
+      },
+      error: (err) => console.error('Error al crear mascota', err),
+    });
+  }
+
+  deletePet(id: number) {
+    if (confirm('¿Estás seguro de querer borrar a esta mascota?')) {
+      this.petService.deletePet(id).subscribe(() => {
+        // Filtramos la lista para quitar el borrado
+        this.pets.update((list) => list.filter((p) => p.id !== id));
+      });
+    }
+  }
+
+  // --- UTILIDADES ---
+
+  // Función para calcular edad a partir de fecha de nacimiento
+  calculateAge(birthDateString: string): string {
+    const birthDate = new Date(birthDateString);
+    const today = new Date();
+
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birthDate.getDate())
+    ) {
+      age--;
+    }
+
+    return age + (age === 1 ? ' año' : ' años');
+  }
 }
