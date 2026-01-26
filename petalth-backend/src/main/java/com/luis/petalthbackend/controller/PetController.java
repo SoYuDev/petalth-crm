@@ -1,10 +1,12 @@
 package com.luis.petalthbackend.controller;
 
-import com.luis.petalthbackend.dto.response.PetDTO;
+import com.luis.petalthbackend.dto.request.PetRequest;
+import com.luis.petalthbackend.dto.response.PetResponse;
 import com.luis.petalthbackend.service.PetService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,7 +26,24 @@ public class PetController {
     @Operation(summary = "Listar mascotas del dueño",
             description = "Obtiene las mascotas específicas a partir del Id del dueño")
     @GetMapping("owner/{ownerId}")
-    public ResponseEntity<List<PetDTO>> getOwnerPets(@PathVariable Long ownerId) {
+    public ResponseEntity<List<PetResponse>> getOwnerPets(@PathVariable Long ownerId) {
         return ResponseEntity.ok(petService.getOwnerPets(ownerId));
     }
+
+    @PostMapping
+    public ResponseEntity<PetResponse> createPet(@RequestBody PetRequest request) {
+        // Extraemos el email para la seguridad
+        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        // Creamos la mascota a partir del email del usuario
+        return ResponseEntity.ok(petService.createPet(request, userEmail));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deletePet(@PathVariable Long id) {
+        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        petService.deletePet(id, userEmail);
+
+        return ResponseEntity.noContent().build();
+    }
+
 }

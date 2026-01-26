@@ -71,60 +71,77 @@ export class PetComponent implements OnInit {
   }
 
   /* TODO - CRUD */
-
-  // --- LÓGICA DEL CRUD ---
-
+  
+  // 1. Mostrar/Ocultar formulario
   toggleForm() {
     this.showForm.update((value) => !value);
   }
 
+  // 2. Método CREAR (Submit)
   onSubmit() {
-    if (this.petForm.invalid || !this.currentOwnerId) return;
+    // Validamos: formulario correcto y que tengamos el ID del dueño
+    if (this.petForm.invalid || !this.currentOwnerId) {
+      this.petForm.markAllAsTouched();
+      return;
+    }
 
-    // Preparamos el objeto para enviar al backend
-    // Aquí mandamos el objeto plano y asumimos que el service lo gestiona.
-    const newPet: any = {
-      ...this.petForm.value,
-      owner: { id: this.currentOwnerId }, // Vinculamos al dueño actual
+    // CREAMOS EL OBJETO CON TIPO 'Pet' ESTRICTO
+    const newPet: Pet = {
+      // id: undefined (porque es nueva)
+      name: this.petForm.value.name,
+      birthDate: this.petForm.value.birthDate,
+      photoUrl: this.petForm.value.photoUrl,
+
+      // owner: undefined (el backend lo calculará)
+      ownerId: this.currentOwnerId, // <--- Enviamos el ID para que Java sepa de quién es
     };
 
+    // Llamamos al servicio
     this.petService.createPet(newPet).subscribe({
       next: (petCreada) => {
-        // Actualizamos la lista localmente añadiendo la nueva mascota
+        // ACTUALIZACIÓN OPTIMISTA (Signals)
+        // El backend nos devuelve la mascota YA creada (con ID y con nombre de owner)
+        // La añadimos a la lista visualmente
         this.pets.update((currentPets) => [...currentPets, petCreada]);
-        this.toggleForm(); // Cerramos formulario
-        this.petForm.reset(); // Limpiamos campos
+
+        // Cerramos y limpiamos
+        this.toggleForm();
+        this.petForm.reset();
       },
-      error: (err) => console.error('Error al crear mascota', err),
+      error: (err) => console.error('Error al crear:', err),
     });
   }
 
-  deletePet(id: number) {
-    if (confirm('¿Estás seguro de querer borrar a esta mascota?')) {
-      this.petService.deletePet(id).subscribe(() => {
-        // Filtramos la lista para quitar el borrado
-        this.pets.update((list) => list.filter((p) => p.id !== id));
+  // 3. Método BORRAR
+  deletePet(petId: number | undefined) {
+    // petId puede ser undefined según la interfaz, lo controlamos
+    if (!petId) return;
+
+    if (confirm('¿Estás seguro de querer eliminar esta mascota?')) {
+      this.petService.deletePet(petId).subscribe({
+        next: () => {
+          // Quitamos la mascota de la lista visualmente
+          this.pets.update((currentPets) =>
+            currentPets.filter((p) => p.id !== petId),
+          );
+        },
+        error: (err) => console.error('Error al borrar:', err),
       });
     }
   }
 
-  // --- UTILIDADES ---
-
-  // Función para calcular edad a partir de fecha de nacimiento
+  // 4. Utilidad para calcular edad (Copiada del ejemplo anterior)
   calculateAge(birthDateString: string): string {
     const birthDate = new Date(birthDateString);
     const today = new Date();
-
     let age = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();
-
     if (
       monthDiff < 0 ||
       (monthDiff === 0 && today.getDate() < birthDate.getDate())
     ) {
       age--;
     }
-
     return age + (age === 1 ? ' año' : ' años');
   }
 }
