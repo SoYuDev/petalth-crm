@@ -47,6 +47,7 @@ export class RegisterComponent {
     this.authService.register(registerRequest).subscribe({
       next: (response) => {
         console.log('Registro exitoso', response);
+        // Construimos la url por ejemplo /pets/33
         this.router.navigate(['/pets', response.id]);
       },
       error: (err) => {
