@@ -38,6 +38,16 @@ public class PetController {
         return ResponseEntity.ok(petService.createPet(request, userEmail));
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<PetResponse> updatePet(
+            @PathVariable Long id,
+            @RequestBody PetRequest request
+    ) {
+        // Obtenemos el email del usuario logueado desde el contexto de seguridad
+        String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        return ResponseEntity.ok(petService.updatePet(id, request, userEmail));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePet(@PathVariable Long id) {
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();

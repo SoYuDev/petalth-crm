@@ -28,6 +28,14 @@ export class PetComponent implements OnInit {
 
   pets = signal<Pet[]>([]);
 
+  // Variable para controlar qué mascota estamos editando (null = modo crear)
+  editingPetId = signal<number | null>(null);
+
+  // Calculamos la fecha de hoy en formato YYYY-MM-DD
+  // new Date().toISOString() devuelve algo como "2023-10-25T14:30:00.000Z"
+  // Hacemos split('T') y nos quedamos con la primera parte [0]
+  today: string = new Date().toISOString().split('T')[0];
+
   // Variable para mostrar el formulario de mascotas
   showForm = signal<boolean>(false);
 
@@ -43,7 +51,7 @@ export class PetComponent implements OnInit {
   ngOnInit(): void {
     // Escuchamos la URL
     this.route.paramMap.subscribe((params) => {
-      // Debe de tener obligatoriamente el nombre de la ruta de app.routes.ts
+      // El argumento de params.get(...) debe de coincidir obligatoriamente el nombre del parámetro de la ruta dinámica de app.routes.ts
       const idString = params.get('ownerId');
 
       if (idString) {
@@ -71,13 +79,37 @@ export class PetComponent implements OnInit {
   }
 
   /* TODO - CRUD */
-  
-  // 1. Mostrar/Ocultar formulario
-  toggleForm() {
-    this.showForm.update((value) => !value);
+
+  // 1. Mostrar formulario para CREAR (Limpio)
+  openCreateForm() {
+    this.editingPetId.set(null); // Aseguramos que es modo CREAR (sin ID)
+    this.petForm.reset(); // Limpiamos el formulario
+    this.showForm.set(true); // Mostramos el form
   }
 
-  // 2. Método CREAR (Submit)
+  // 2. Mostrar formulario para EDITAR (Cargamos datos)
+  loadPetForEdit(pet: Pet) {
+    this.editingPetId.set(pet.id || null); // Guardamos el ID que estamos editando
+
+    // patchValue rellena el formulario automáticamente con los datos de la mascota
+    this.petForm.patchValue({
+      name: pet.name,
+      birthDate: pet.birthDate,
+      // Si pet.photoUrl tiene algo, lo pone. Si es null/vacío, deja el input vacío.
+      photoUrl: pet.photoUrl,
+    });
+
+    this.showForm.set(true); // Abrimos el form
+  }
+
+  // 3. Cerrar formulario y limpiar
+  closeForm() {
+    this.showForm.set(false);
+    this.editingPetId.set(null);
+    this.petForm.reset();
+  }
+
+  // 4. Método INTELIGENTE (Submit: Crear o Editar)
   onSubmit() {
     // Validamos: formulario correcto y que tengamos el ID del dueño
     if (this.petForm.invalid || !this.currentOwnerId) {
@@ -85,42 +117,61 @@ export class PetComponent implements OnInit {
       return;
     }
 
+    const formValues = this.petForm.value;
+
     // CREAMOS EL OBJETO CON TIPO 'Pet' ESTRICTO
-    const newPet: Pet = {
-      // id: undefined (porque es nueva)
-      name: this.petForm.value.name,
-      birthDate: this.petForm.value.birthDate,
-      photoUrl: this.petForm.value.photoUrl,
+    const petData: Pet = {
+      // id: undefined (porque es nueva) y el motor de BDD se encarga de general el ID
+      name: formValues.name,
+      birthDate: formValues.birthDate,
+      photoUrl: formValues.photoUrl,
 
       // owner: undefined (el backend lo calculará)
-      ownerId: this.currentOwnerId, // <--- Enviamos el ID para que Java sepa de quién es
+      ownerId: this.currentOwnerId, // <--- Enviamos el ID para que el backend sepa de quién es
     };
 
-    // Llamamos al servicio
-    this.petService.createPet(newPet).subscribe({
-      next: (petCreada) => {
-        // ACTUALIZACIÓN OPTIMISTA (Signals)
-        // El backend nos devuelve la mascota YA creada (con ID y con nombre de owner)
-        // La añadimos a la lista visualmente
-        this.pets.update((currentPets) => [...currentPets, petCreada]);
+    // --- DECISIÓN: ¿Estamos Editando o Creando? ---
+    // Si el valor es null o vacío dará false.
+    if (this.editingPetId()) {
+      // MODO UPDATE
+      const idToUpdate = this.editingPetId()!;
 
-        // Cerramos y limpiamos
-        this.toggleForm();
-        this.petForm.reset();
-      },
-      error: (err) => console.error('Error al crear:', err),
-    });
+      this.petService.updatePet(idToUpdate, petData).subscribe({
+        next: (petActualizada) => {
+          // ACTUALIZACIÓN OPTIMISTA (Signals)
+          // Buscamos la mascota en la lista y la sustituimos por la nueva
+          // Mediante un stream pregunta si p tiene le id de la pet que quiero actualizar, si lo es se sustituye por la petActualizada si no seguira siendo p
+          this.pets.update((list) =>
+            list.map((p) => (p.id === idToUpdate ? petActualizada : p)),
+          );
+          this.closeForm(); // Cerramos y limpiamos
+        },
+        error: (err) => console.error('Error al actualizar:', err),
+      });
+    } else {
+      // MODO CREATE
+      this.petService.createPet(petData).subscribe({
+        next: (petCreada) => {
+          // ACTUALIZACIÓN OPTIMISTA (Signals)
+          // La añadimos a la lista visualmente, usamos el spread operator... respetando la inmutabilidad.
+          this.pets.update((currentPets) => [...currentPets, petCreada]);
+          this.closeForm(); // Cerramos y limpiamos
+        },
+        error: (err) => console.error('Error al crear:', err),
+      });
+    }
   }
 
-  // 3. Método BORRAR
+  // 5. Método BORRAR
   deletePet(petId: number | undefined) {
     // petId puede ser undefined según la interfaz, lo controlamos
     if (!petId) return;
 
+    // El navegador nos saca un aviso
     if (confirm('¿Estás seguro de querer eliminar esta mascota?')) {
       this.petService.deletePet(petId).subscribe({
         next: () => {
-          // Quitamos la mascota de la lista visualmente
+          // Quitamos la mascota de la lista en el front
           this.pets.update((currentPets) =>
             currentPets.filter((p) => p.id !== petId),
           );
@@ -130,7 +181,7 @@ export class PetComponent implements OnInit {
     }
   }
 
-  // 4. Utilidad para calcular edad (Copiada del ejemplo anterior)
+  // 6. Utilidad para calcular edad
   calculateAge(birthDateString: string): string {
     const birthDate = new Date(birthDateString);
     const today = new Date();

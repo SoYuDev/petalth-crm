@@ -1,7 +1,7 @@
 export interface Pet {
   id?: number; // Opcional: Al crear una mascota nueva, aún no tiene ID
   name: string;
-  photoUrl?: string;
+  photoUrl?: string; // Opcional
   birthDate: string;
 
   owner?: string; // Opcional: Nos lo da el backend al leer, pero no lo enviamos al crear

@@ -20,6 +20,11 @@ export class PetService {
     return this.http.post<Pet>(this.apiUrl, pet);
   }
 
+  // Actualizar mascota
+  updatePet(id: number, pet: Pet): Observable<Pet> {
+    return this.http.put<Pet>(`${this.apiUrl}/${id}`, pet);
+  }
+
   // Borrar una mascota por ID
   deletePet(petId: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${petId}`);

@@ -41,6 +41,7 @@ export class LoginComponent {
     // Extraemos los valores del formulario que había en loginForm
     const credentials: LoginRequest = {
       // ?? -> Operador de fusión nula. Si this.loginForm.value.email es null, cogerá el valor de la derecha, en este caso un string vacío.
+      // Realmente esto es una validación extra ya que el propio objeto loginForm ya realiza validaciones con Validators.required por lo que el string nunca será vacío.
       email: this.loginForm.value.email ?? '',
       password: this.loginForm.value.password ?? '',
     };
@@ -48,7 +49,7 @@ export class LoginComponent {
     // Llamamos al servicio suscribiendonos al observable
     this.authService.login(credentials).subscribe({
       next: () => {
-        // Si todo sale bien, redirigimos a la home (Spring Boot manda un 200 OK)
+        // Si todo sale bien, redirigimos a la home page (Spring Boot manda un 200 OK)
         this.router.navigate(['/']);
       },
       // Si hay un error (Spring Boot manda 401 o 403)

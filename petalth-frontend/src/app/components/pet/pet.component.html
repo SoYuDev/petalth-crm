@@ -6,7 +6,8 @@
       <p class="text-muted">Gestiona el perfil de tus peludos</p>
     </div>
 
-    <button class="btn btn-primary rounded-pill px-4" (click)="toggleForm()">
+    <!--Cuando doy click pregunto, el formulario está abierto? cierralo si no está cerrado prearo el form de creacion-->
+    <button class="btn btn-primary rounded-pill px-4" (click)="showForm() ? closeForm() : openCreateForm()">
       @if (showForm()) {
       <i class="bi bi-x-lg"></i> Cancelar
       } @else {
@@ -18,7 +19,11 @@
   @if (showForm()) {
   <div class="card border-0 shadow-sm p-4 mb-5 bg-light rounded-4">
     <div class="card-body">
-      <h4 class="mb-4 text-primary">Registrar nueva mascota</h4>
+
+      <h4 class="mb-4 text-primary">
+        <!-- Formulario flexible a partir del signal editingPetId-->
+        {{ editingPetId() ? 'Editar mascota' : 'Registrar nueva mascota' }}
+      </h4>
 
       <form [formGroup]="petForm" (ngSubmit)="onSubmit()">
         <div class="row g-3">
@@ -27,7 +32,7 @@
             <label class="form-label fw-semibold">Nombre</label>
             <input type="text" class="form-control form-control-lg" formControlName="name"
               [class.is-invalid]="petForm.get('name')?.invalid && petForm.get('name')?.touched"
-              placeholder="Ej: Firulais">
+              placeholder="Ej: Firulais, el destructor de mundos" maxlength="60">
             @if(petForm.get('name')?.invalid && petForm.get('name')?.touched) {
             <div class="invalid-feedback">El nombre es obligatorio</div>
             }
@@ -35,8 +40,11 @@
 
           <div class="col-md-6">
             <label class="form-label fw-semibold">Fecha de Nacimiento</label>
-            <input type="date" class="form-control form-control-lg" formControlName="birthDate"
+
+            <!--Solo podemos escoger el día de hoy no más adelante ya que no tendria sentido para una fecha de nacimiento-->
+            <input type="date" class="form-control form-control-lg" formControlName="birthDate" [max]="today"
               [class.is-invalid]="petForm.get('birthDate')?.invalid && petForm.get('birthDate')?.touched">
+
             @if(petForm.get('birthDate')?.invalid && petForm.get('birthDate')?.touched) {
             <div class="invalid-feedback">La fecha es necesaria</div>
             }
@@ -59,7 +67,7 @@
 
         <div class="mt-4 text-end">
           <button type="submit" class="btn btn-success px-4 py-2 rounded-pill" [disabled]="petForm.invalid">
-            Guardar Mascota
+            {{ editingPetId() ? 'Actualizar Mascota' : 'Guardar Mascota' }}
           </button>
         </div>
       </form>
@@ -73,12 +81,10 @@
     @for (pet of pets(); track pet.id) {
     <div class="col">
       <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden">
-
         <div class="position-relative">
-          <img
-            [src]="pet.photoUrl || 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?q=80&w=1000&auto=format&fit=crop'"
-            class="card-img-top" style="height: 250px; object-fit: cover;" alt="{{ pet.name }}"
-            onerror="this.src='https://images.unsplash.com/photo-1543466835-00a7907e9de1?q=80&w=1000&auto=format&fit=crop'">
+          <img [src]="pet.photoUrl || '../../../assets/media/PetPlaceholderImage.png'" class="card-img-top"
+            style="height: 250px; object-fit: cover;" alt="{{ pet.name }}"
+            onerror="this.src='../../../assets/media/PetPlaceholderImage.png'">
 
           <span class="position-absolute top-0 end-0 m-3 badge bg-white text-dark shadow-sm rounded-pill">
             {{ calculateAge(pet.birthDate) }}
@@ -93,7 +99,13 @@
 
           <hr class="text-muted opacity-25">
 
-          <div class="d-flex justify-content-end">
+          <div class="d-flex justify-content-end gap-2">
+
+            <!-- Cuando damos al boton recogemod el id de la mascota y lo mandamos a la lógica-->
+            <button class="btn btn-outline-primary btn-sm rounded-pill px-3" (click)="loadPetForEdit(pet)">
+              Editar
+            </button>
+
             <button class="btn btn-outline-danger btn-sm rounded-pill px-3" (click)="deletePet(pet.id)">
               Eliminar
             </button>
@@ -113,7 +125,7 @@
     </div>
     <h3 class="text-muted">No tienes mascotas registradas</h3>
     <p class="mb-4">¡Añade a tu mejor amigo para empezar a cuidarlo!</p>
-    <button class="btn btn-primary rounded-pill" (click)="toggleForm()">
+    <button class="btn btn-primary rounded-pill" (click)="openCreateForm()">
       Registrar mi primera mascota
     </button>
   </div>

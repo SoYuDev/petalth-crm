@@ -71,6 +71,35 @@ public class PetService {
     }
 
     @Transactional
+    public PetResponse updatePet(Long petId, PetRequest petRequest, String userEmail) {
+        // 1. Buscamos la mascota
+        Pet pet = petRepository.findById(petId)
+                .orElseThrow(() -> new RuntimeException("Mascota no encontrada"));
+
+        // 2. SEGURIDAD: Verificar que el dueño del token es el dueño de la mascota
+        if (!pet.getOwner().getUser().getEmail().equals(userEmail)) {
+            throw new RuntimeException("No tienes permiso para editar esta mascota");
+        }
+
+        // 3. Actualizamos los datos
+        pet.setName(petRequest.name());
+        pet.setBirthDate(petRequest.birthDate());
+        pet.setPhotoUrl(petRequest.photoUrl());
+
+        // 4. Guardamos y devolvemos la respuesta
+        Pet updatedPet = petRepository.save(pet);
+
+        return new PetResponse(
+                updatedPet.getId(),
+                updatedPet.getName(),
+                updatedPet.getPhotoUrl(),
+                updatedPet.getBirthDate(),
+                // Construir el nombre + apellidos
+                updatedPet.getOwner().getUser().getFirstName() +
+                        " " + updatedPet.getOwner().getUser().getLastName());
+    }
+
+    @Transactional
     public void deletePet(Long petId, String userEmail) {
         // 1. Buscamos la mascota
         Pet pet = petRepository.findById(petId)
