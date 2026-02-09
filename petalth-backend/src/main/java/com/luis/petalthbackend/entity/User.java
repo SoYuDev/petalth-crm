@@ -38,7 +38,7 @@ public class User implements UserDetails {
     @Builder.Default
     private boolean active = true;
 
-    // Metodos de UserDetails
+    // Metodos de UserDetails -- Importante para Spring Security
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         // Convierte tu enum ROL en un permiso que Spring entienda
