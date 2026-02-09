@@ -50,6 +50,7 @@ public class PetController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePet(@PathVariable Long id) {
+        // Obtenemos el email del usuario logueado desde el contexto de seguridad
         String userEmail = SecurityContextHolder.getContext().getAuthentication().getName();
         petService.deletePet(id, userEmail);
 
