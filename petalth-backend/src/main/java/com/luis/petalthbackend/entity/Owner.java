@@ -28,6 +28,7 @@ public class Owner {
     @JoinColumn(name = "user_id", foreignKey = @ForeignKey(name = "fk_owner_petalth_user"))
     private User user;
 
+    // Si guardamos o actualizamos al Owner, automáticamente se guardan o actualizan sus pets
     @OneToMany(mappedBy = "owner", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @Builder.Default // No es necesario con builder definir pets y de esta manera no sobrescribe la lista
     private List<Pet> pets = new ArrayList<>();
