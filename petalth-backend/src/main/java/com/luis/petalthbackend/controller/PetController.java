@@ -30,6 +30,7 @@ public class PetController {
         return ResponseEntity.ok(petService.getOwnerPets(ownerId));
     }
 
+    @Operation(summary = "Crear una nueva mascota", description = "Registra una mascota y la asocia al usuario actual")
     @PostMapping
     public ResponseEntity<PetResponse> createPet(@RequestBody PetRequest request) {
         // Extraemos el email para la seguridad
@@ -38,6 +39,7 @@ public class PetController {
         return ResponseEntity.ok(petService.createPet(request, userEmail));
     }
 
+    @Operation(summary = "Actualizar mascota", description = "Modifica los datos de una mascota existente")
     @PutMapping("/{id}")
     public ResponseEntity<PetResponse> updatePet(
             @PathVariable Long id,
@@ -48,6 +50,7 @@ public class PetController {
         return ResponseEntity.ok(petService.updatePet(id, request, userEmail));
     }
 
+    @Operation(summary = "Eliminar mascota", description = "Realiza un borrado lógico de la mascota")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePet(@PathVariable Long id) {
         // Obtenemos el email del usuario logueado desde el contexto de seguridad

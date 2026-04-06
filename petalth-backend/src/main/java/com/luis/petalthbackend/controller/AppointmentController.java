@@ -2,6 +2,7 @@ package com. luis.petalthbackend. controller;
 
 import com.luis. petalthbackend.dto. response.AppointmentDTO;
 import com.luis.petalthbackend.service.AppointmentService;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework. http.ResponseEntity;
 import org.springframework. web.bind.annotation.*;
 
@@ -18,6 +19,7 @@ public class AppointmentController {
         this.appointmentService = appointmentService;
     }
 
+    @Operation(summary = "Listar citas", description = "Obtiene todas las citas")
     @GetMapping
     public ResponseEntity<List<AppointmentDTO>> getAllAppointments() {
         List<AppointmentDTO> appointments = appointmentService.getAllAppointments();
