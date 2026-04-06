@@ -35,6 +35,7 @@ public class User implements UserDetails {
     @Enumerated(EnumType.STRING)
     private Rol rol;
 
+    // Cuando creamos una instancia mediante builder, active es true por defecto
     @Builder.Default
     private boolean active = true;
 

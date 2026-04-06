@@ -37,7 +37,11 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 // Permitimos el acceso a TODAS las rutas sin autenticación
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**").permitAll() // 2. Permitir rutas públicas
+                        .requestMatchers(
+                                "/auth/**",
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html").permitAll() // 2. Permitir rutas públicas
                         .requestMatchers("/api/pets/**").hasRole("OWNER")
                         .anyRequest().authenticated() // 3. Proteger todas las demás rutas
                 )
