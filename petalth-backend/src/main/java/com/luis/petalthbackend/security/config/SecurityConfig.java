@@ -4,6 +4,7 @@ import com.luis.petalthbackend.security.jwt.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -43,6 +44,7 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/swagger-ui.html").permitAll() // 2. Permitir rutas públicas
                         .requestMatchers("/api/pets/**").hasRole("OWNER")
+                        .requestMatchers(HttpMethod.GET, "/api/veterinarians").permitAll()
                         .anyRequest().authenticated() // 3. Proteger todas las demás rutas
                 )
                 .sessionManagement(session -> session
