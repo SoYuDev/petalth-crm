@@ -1,15 +1,72 @@
-<h2>Listado de Veterinarios</h2>
+<div class="container my-5">
 
-@if (veterinarians().length > 0) {
+  <div class="text-center mb-5">
+    <h2 class="fw-bold text-primary">Nuestro Equipo Médico</h2>
+    <p class="text-muted fs-5">Conoce a los profesionales que cuidarán de tu mascota</p>
+  </div>
 
-<ul>
+  @if (veterinarians().length > 0) {
+  <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+
     @for (vet of veterinarians(); track vet.id) {
-    <li>
-        <strong>{{ vet.fullName }}</strong> ({{ vet.speciality }})
-    </li>
-    }
-</ul>
+    <div class="col" style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#vetModal"
+      (click)="viewVetDetails(vet)">
 
-} @else {
-<p>Cargando datos o lista vacía...</p>
-}
+      <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden text-center pt-4 transition-transform">
+
+        <img [src]="getSpecialityIcon(vet.speciality)" class="rounded-circle mx-auto mb-3 shadow-sm"
+          style="width: 120px; height: 120px; object-fit: cover; border: 3px solid #f8f9fa;" alt="{{ vet.fullName }}"
+          onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'">
+
+        <div class="card-body p-4">
+          <h4 class="card-title fw-bold mb-1">{{ vet.fullName }}</h4>
+          <p class="text-muted small mb-0">{{ vet.speciality }}</p>
+        </div>
+
+      </div>
+    </div>
+    }
+
+  </div>
+  } @else {
+
+  <div class="text-center py-5 my-5 bg-light rounded-4">
+    <h3 class="text-muted">Cargando directorio médico...</h3>
+  </div>
+
+  }
+</div>
+
+<div class="modal fade" id="vetModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4 border-0 shadow">
+
+      @if (selectedVet()) {
+      <div class="modal-header border-0 pb-0 justify-content-end">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body text-center pt-0 px-4 pb-4">
+
+        <img [src]="getSpecialityIcon(selectedVet()?.speciality)" class="rounded-circle mb-3 shadow-sm"
+          style="width: 150px; height: 150px; object-fit: cover; border: 4px solid #fff;"
+          alt="{{ selectedVet()?.fullName }}"
+          onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'">
+
+        <h3 class="fw-bold mb-2">{{ selectedVet()?.fullName }}</h3>
+
+        <span class="badge bg-primary rounded-pill px-3 py-2 mb-4 fs-6">
+          {{ selectedVet()?.speciality }}
+        </span>
+
+        <!-- En función del veterinario seleccionado, elegiremos uno u otro -->
+        <p class="text-muted text-start border-top pt-3">
+          {{ getSpecialityDescription(selectedVet()?.speciality) }}
+        </p>
+
+      </div>
+      }
+
+    </div>
+  </div>
+</div>

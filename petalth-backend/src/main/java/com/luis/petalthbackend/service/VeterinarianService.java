@@ -19,7 +19,7 @@ public class VeterinarianService {
                 .stream()
                 .map(vet -> new VeterinarianDTO(
                         vet.getId(),
-                        vet.getUser().getFirstName() + vet.getUser().getLastName(),
+                        vet.getUser().getFirstName() + " " + vet.getUser().getLastName(),
                         vet.getSpeciality()
 
                 )).toList();
