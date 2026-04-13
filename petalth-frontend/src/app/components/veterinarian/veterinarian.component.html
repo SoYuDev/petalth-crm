@@ -11,7 +11,7 @@
     @for (vet of veterinarians(); track vet.id) {
     <div class="col" style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#vetModal"
       (click)="viewVetDetails(vet)">
-      
+
       <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden text-center pt-4 transition-transform">
 
         <img [src]="getSpecialityIcon(vet.speciality)" class="rounded-circle mx-auto mb-3 shadow-sm"
@@ -59,9 +59,9 @@
           {{ selectedVet()?.speciality }}
         </span>
 
+        <!-- En función del veterinario seleccionado, elegiremos uno u otro -->
         <p class="text-muted text-start border-top pt-3">
-          Especialista dedicado a la salud y bienestar animal, con amplia experiencia en su campo. Comprometido con
-          ofrecer la mejor atención a tus mascotas.
+          {{ getSpecialityDescription(selectedVet()?.speciality) }}
         </p>
 
       </div>
