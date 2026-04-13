@@ -42,8 +42,8 @@ public class User implements UserDetails {
     // Metodos de UserDetails -- Importante para Spring Security
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // Convierte tu enum ROL en un permiso que Spring entienda
-        return List.of(new SimpleGrantedAuthority(rol.name()));
+        // Añadimos el prefijo ROLE_ para que .hasRole() funcione correctamente
+        return List.of(new SimpleGrantedAuthority("ROLE_" + rol.name()));
     }
 
     @Override
