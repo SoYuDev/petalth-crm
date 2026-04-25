@@ -46,6 +46,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/pets/**").hasRole("OWNER")
                         .requestMatchers(HttpMethod.GET, "/api/veterinarians").permitAll()
                         .requestMatchers("/api/invoices/**").hasRole("ADMIN")
+                        .requestMatchers("/api/users/**").hasRole("ADMIN")
                         .anyRequest().authenticated() // 3. Proteger todas las demás rutas
                 )
                 .sessionManagement(session -> session

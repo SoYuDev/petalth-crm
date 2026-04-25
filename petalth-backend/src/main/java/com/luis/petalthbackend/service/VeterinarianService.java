@@ -3,6 +3,7 @@ package com.luis.petalthbackend.service;
 import com.luis.petalthbackend.dto.response.VeterinarianDTO;
 import com.luis.petalthbackend.repository.VeterinarianRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional; // <-- Importamos Transactional
 
 import java.util.List;
 
@@ -14,14 +15,16 @@ public class VeterinarianService {
         this.veterinarianRepository = veterinarianRepository;
     }
 
+    // Le añadimos el Transactional para asegurar que puede acceder a vet.getUser() sin errores
+    @Transactional(readOnly = true)
     public List<VeterinarianDTO> getAllVets() {
         return veterinarianRepository.findAll()
                 .stream()
                 .map(vet -> new VeterinarianDTO(
                         vet.getId(),
                         vet.getUser().getFirstName() + " " + vet.getUser().getLastName(),
-                        vet.getSpeciality()
-
+                        vet.getSpeciality(),
+                        vet.getUser().isActive()
                 )).toList();
     }
 }
