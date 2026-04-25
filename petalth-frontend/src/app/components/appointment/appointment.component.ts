@@ -68,4 +68,22 @@ export class AppointmentComponent implements OnInit {
       default: return status;
     }
   }
+
+  // Método para cambiar el estado desde la UI
+  changeStatus(id: number, newStatus: string) {
+    // Pedimos confirmación rápida si va a cancelar (por seguridad MVP)
+    if (newStatus === 'CANCELLED' && !confirm('¿Seguro que quieres cancelar esta cita?')) {
+      return;
+    }
+
+    this.service.updateStatus(id, newStatus).subscribe({
+      next: (updatedAppt) => {
+        // ACTUALIZACIÓN OPTIMISTA: Buscamos la cita antigua y la pisamos con la nueva
+        this.appointments.update(list => 
+          list.map(a => a.id === id ? updatedAppt : a)
+        );
+      },
+      error: (err) => console.error('Error actualizando estado:', err)
+    });
+  }
 }

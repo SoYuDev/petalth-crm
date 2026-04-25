@@ -1,6 +1,7 @@
 package com. luis.petalthbackend. controller;
 
 import com.luis. petalthbackend.dto. response.AppointmentDTO;
+import com.luis.petalthbackend.entity.AppointmentStatus;
 import com.luis.petalthbackend.service.AppointmentService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework. http.ResponseEntity;
@@ -35,5 +36,14 @@ public class AppointmentController {
 
         // Llamamos al servicio para que filtre en la base de datos
         return ResponseEntity.ok(appointmentService.getAppointmentsByVetEmail(email));
+    }
+
+    @Operation(summary = "Cambiar estado", description = "Permite marcar una cita como completada o cancelada")
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<AppointmentDTO> changeStatus(
+            @PathVariable Long id,
+            @RequestParam AppointmentStatus status) {
+
+        return ResponseEntity.ok(appointmentService.updateAppointmentStatus(id, status));
     }
 }

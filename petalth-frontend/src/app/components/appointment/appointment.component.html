@@ -34,9 +34,20 @@
           </div>
           
           <div class="text-md-end">
-            <span class="badge rounded-pill px-4 py-2 fs-6 shadow-sm" [ngClass]="getStatusClass(appt.status)">
+            <span class="badge rounded-pill px-4 py-2 fs-6 shadow-sm mb-2 d-inline-block" [ngClass]="getStatusClass(appt.status)">
               {{ getStatusText(appt.status) }}
             </span>
+
+            @if (appt.status === 'PENDING') {
+              <div class="d-flex gap-2 justify-content-md-end mt-2">
+                <button class="btn btn-sm btn-success rounded-pill px-3 shadow-sm" (click)="changeStatus(appt.id, 'COMPLETED')">
+                  <i class="bi bi-check-lg"></i> Completar
+                </button>
+                <button class="btn btn-sm btn-outline-danger rounded-pill px-3 shadow-sm" (click)="changeStatus(appt.id, 'CANCELLED')">
+                  <i class="bi bi-x-lg"></i> Cancelar
+                </button>
+              </div>
+            }
           </div>
 
         </div>

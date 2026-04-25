@@ -15,4 +15,10 @@ export class AppointmentService {
   getMyAppointments() {
     return this.http.get<Appointment[]>(`${this.apiUrl}/my-agenda`);
   }
+
+  // Cambiar estado de la cita
+  updateStatus(id: number, status: string) {
+    // Le pasamos el status por query param (?status=COMPLETED) como espera el backend
+    return this.http.patch<Appointment>(`${this.apiUrl}/${id}/status?status=${status}`, {});
+  }
 }
