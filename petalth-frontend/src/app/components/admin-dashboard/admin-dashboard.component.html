@@ -1,0 +1,77 @@
+<div class="container my-5">
+  <div class="mb-5 border-bottom pb-3">
+    <h2 class="fw-bold text-danger">Panel de Control General</h2>
+  </div>
+
+  <div class="row g-4 mb-5">
+    
+    <div class="col-md-6">
+      <div class="card border-0 bg-success bg-opacity-10 shadow-sm h-100 rounded-4">
+        <div class="card-body p-4 text-center">
+          <h5 class="text-success fw-bold mb-3">INGRESOS GENERADOS (PAGADO)</h5>
+          <h1 class="display-3 fw-bold text-success">
+            {{ totalIngresos() | currency:'EUR':'symbol':'1.2-2' }}
+          </h1>
+          <p class="text-muted small mt-2 mb-0">Total acumulado de facturas abonadas</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card border-0 bg-warning bg-opacity-10 shadow-sm h-100 rounded-4">
+        <div class="card-body p-4 text-center">
+          <h5 class="text-warning fw-bold mb-3" style="color: #d39e00 !important;">PENDIENTE DE COBRO</h5>
+          <h1 class="display-3 fw-bold" style="color: #d39e00;">
+            {{ totalPendiente() | currency:'EUR':'symbol':'1.2-2' }}
+          </h1>
+          <p class="text-muted small mt-2 mb-0">Facturas emitidas pendientes de pago</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="card border-0 shadow-sm rounded-4">
+    <div class="card-header bg-white border-0 pt-4 pb-0 px-4">
+      <h4 class="fw-bold mb-0">Historial de Facturación</h4>
+    </div>
+    
+    <div class="card-body p-4">
+      @if (invoices().length > 0) {
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>ID Factura</th>
+                <th>Fecha Emisión</th>
+                <th>Importe</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (inv of invoices(); track inv.id) {
+                <tr>
+                  <td class="fw-bold text-secondary">#INV-00{{ inv.id }}</td>
+                  <td>{{ inv.issueDate | date:'mediumDate' }}</td>
+                  <td class="fw-bold">{{ inv.amount | currency:'EUR' }}</td>
+                  <td>
+                    @if (inv.status === 'PAID') {
+                      <span class="badge bg-success rounded-pill px-3 py-2">PAGADA</span>
+                    } @else {
+                      <span class="badge bg-warning text-dark rounded-pill px-3 py-2">PENDIENTE</span>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <div class="text-center py-4">
+          <p class="text-muted mb-0">No hay facturas registradas en el sistema.</p>
+        </div>
+      }
+    </div>
+  </div>
+
+</div>

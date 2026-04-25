@@ -50,7 +50,9 @@
         <!-- Si somos Administradores...-->
         @if (authService.isAdmin()) {
         <li class="nav-item">
-          <a class="nav-link text-danger" routerLink="/admin/users" routerLinkActive="active">Usuarios</a>
+          <a class="nav-link text-danger fw-bold" routerLink="/admin/dashboard" routerLinkActive="active">
+             Panel Admin
+          </a>
         </li>
         }
         }
