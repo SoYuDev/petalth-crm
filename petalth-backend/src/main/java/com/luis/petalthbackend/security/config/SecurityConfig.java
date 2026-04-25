@@ -45,6 +45,8 @@ public class SecurityConfig {
                                 "/swagger-ui.html").permitAll() // 2. Permitir rutas públicas
                         .requestMatchers("/api/pets/**").hasRole("OWNER")
                         .requestMatchers(HttpMethod.GET, "/api/veterinarians").permitAll()
+                        .requestMatchers("/api/invoices/**").hasRole("ADMIN")
+                        .requestMatchers("/api/users/**").hasRole("ADMIN")
                         .anyRequest().authenticated() // 3. Proteger todas las demás rutas
                 )
                 .sessionManagement(session -> session
@@ -73,7 +75,7 @@ public class SecurityConfig {
         // Definimos las reglas de configuración del CORS.
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of("http://localhost:4200")); // Permitir Angular
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         configuration.setAllowCredentials(true);
 
